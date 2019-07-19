@@ -1,13 +1,13 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>de.fhg.iais.roberta</groupId>
     <artifactId>OpenRobertaConnector</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
     <scm>
         <developerConnection>scm:git:git@github.com:OpenRoberta/openroberta-connector.git</developerConnection>
-    </scm>
+      <tag>v0.1.0</tag>
+  </scm>
 
     <properties>
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
@@ -319,7 +319,7 @@
                             </classPath>
                             <singleInstance>
                                 <mutexName>OpenRoberta</mutexName>
-                                <windowTitle></windowTitle>
+                                <windowTitle />
                             </singleInstance>
                             <jre>
                                 <minVersion>1.8.0</minVersion>
@@ -339,10 +339,8 @@
                         <phase>install</phase>
                         <configuration>
                             <target>
-                                <copy file="${basedir}/target/${project.artifactId}-${project.version}.jar"
-                                    tofile="${basedir}/installers/linux/${project.artifactId}.jar" />
-                                <copy file="${basedir}/target/${project.artifactId}-${project.version}.jar"
-                                    tofile="${basedir}/installers/osx/${project.artifactId}.jar" />
+                                <copy file="${basedir}/target/${project.artifactId}-${project.version}.jar" tofile="${basedir}/installers/linux/${project.artifactId}.jar" />
+                                <copy file="${basedir}/target/${project.artifactId}-${project.version}.jar" tofile="${basedir}/installers/osx/${project.artifactId}.jar" />
                             </target>
                         </configuration>
                         <goals>
