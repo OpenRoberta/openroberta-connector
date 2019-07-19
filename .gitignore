@@ -1,0 +1,10 @@
+target/
+dependency-reduced-pom.xml
+release.properties
+pom.xml.releaseBackup
+
+.idea/
+*.iml
+
+customaddresses.txt
+/arduino-ids.txt

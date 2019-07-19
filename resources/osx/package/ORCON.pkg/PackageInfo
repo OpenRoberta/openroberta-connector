@@ -1,0 +1,7 @@
+<?xml version="1.0" standalone="yes"?>
+<pkg-info format-version="2" identifier="${groupId}.${artifactId}" version="${version}" overwrite-permissions="false" install-location="/" auth="root">
+    <payload numberOfFiles="10" installKBytes="2899"/>
+    <bundle-version>
+        <bundle path="./Applications/${artifactId}.app" CFBundleShortVersionString="1.2" CFBundleVersion="428" id="com.apple.automator.${artifactId}" CFBundleIdentifier="com.apple.automator.${artifactId}"/>
+    </bundle-version>
+</pkg-info>

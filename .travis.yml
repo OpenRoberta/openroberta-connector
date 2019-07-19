@@ -1,0 +1,67 @@
+language: java
+
+services:
+  - xvfb
+
+cache:
+  directories:
+  - $HOME/.m2
+  - $HOME/AppData/Local/Temp/chocolatey
+
+matrix:
+  include:
+  - os: linux
+    jdk: openjdk8
+  - os: windows
+    language: bash
+    env:
+    - JAVA_HOME=/c/java8
+    - PATH=$JAVA_HOME/bin:$PATH
+    - PATH=/c/ProgramData/chocolatey/bin:${PATH}
+    - WIX=$HOME/build/OpenRoberta/openroberta-connector/WiX.Toolset.3.9.1208.0/tools/wix
+  - os: osx
+
+install:
+- if [ $TRAVIS_OS_NAME = 'windows' ]; then choco install jdk8 -params 'installdir=c:\\java8'; fi
+- if [ $TRAVIS_OS_NAME = 'windows' ]; then choco install maven --version 3.6.1; fi
+
+script:
+- mvn clean install
+
+after_success:
+- bash <(curl -s https://codecov.io/bash)
+
+before_deploy:
+# wixtoolset install fails https://travis-ci.community/t/unable-to-install-wix-toolset/1071
+# - if [ $TRAVIS_OS_NAME = 'windows' ]; then choco install wixtoolset; fi
+- if [ $TRAVIS_OS_NAME = 'windows' ]; then choco install nuget.commandline; fi
+- if [ $TRAVIS_OS_NAME = 'windows' ]; then nuget install WiX.Toolset -Version 3.9.1208; fi
+- if [ $TRAVIS_OS_NAME = 'windows' ]; then curl 'https://download.microsoft.com/download/0/8/C/08C7497F-8551-4054-97DE-60C0E510D97A/wdk/wdksetup.exe' --output wdksetup.exe; fi
+- if [ $TRAVIS_OS_NAME = 'windows' ]; then ./wdksetup.exe //features + //q //norestart //ceip off; fi
+- cd installers
+- ./release.sh $TRAVIS_OS_NAME
+
+deploy:
+  provider: releases
+  api_key:
+    secure: l6Hyy76lbgXe5NPyP+/1BSCETrebZOmzG9Rr4X+5+LUwTz9sXd9gNojGA7dT36wR/Ti7BRif3mUb9zTUnnAm2yBoX5TC9eh9Ime44n8nseOLRzoDjGqDtLis0p52Z5QlgyM0WuY3vPRzmkV241SRsT3j2+DRCqUd7w7Ba1sumgaRJuNVwcLCJ0Fomf4NKsz61Lf/Iz402oourNQvb5FoFURdgW5F/spXJnZ8yy6Gpnp4dnBxsJs0jmC8h+woByZvKELiULqg/bw8DP5vI/ntKWMr9DsaVJMYg6GTnY+wU9xSe+C1VT6YqV1tq0noisukckUQZDZl/pJvKoOMe8shtK+1FRvQ14O96fSGrhsG7nZeaVerKCapOGGkZCV92DS7+72FU4xP0ktqpDXzIUJZmR7Z/F9QNIjFoyaEea5ZKKIzvLDMPi6AXlmy+9Cla4AU6TN8EGXhbyl/zaaWJ+c8iGWZgZqheULOFtTJYtDcAlVEXmR0Z4psPpEE5RS8Ms6NqjHVjrGtpiHUC9hv899QBWRR6Lkbimj+B9itFKVxC3tmprIa7+UUuqEQqinDMPM+xqplAQPNDU4Ow0ifIJ9Dvhgaf3p5BAfrPMRgSBeQ/M3c5XtMOOKYVI9OoSXmSXU0aqPgrCoj6pSlAn4gsq7nze2DtOMpwWohHZ5zagjpPbM=
+  file_glob: true
+  file:
+  - "*.msi"
+  - "*.tar.gz"
+  - "*.pkg"
+  skip_cleanup: true
+  draft: true
+  on:
+    repo: OpenRoberta/openroberta-connector
+    branch: travis
+    tags: true
+
+notifications:
+  irc: "chat.freenode.net#open-roberta"
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/9656874f95990cb84024
+    on_success: change  # options: [always|never|change] default: always
+    on_failure: always  # options: [always|never|change] default: always
+    on_start: never     # options: [always|never|change] default: always

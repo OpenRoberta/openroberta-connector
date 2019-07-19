@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:bal="http://schemas.microsoft.com/wix/BalExtension">
+    <?define Name="Open Roberta Connector"?>
+    <?define Manufacturer="Fraunhofer IAIS"?>
+    <?define UpgradeCode="00f86c74-d63c-476a-93db-e2f75900fac6"?>
+    <?define Language="1033"?>
+    <?define Codepage="1252"?>
+    <?define ProductVersion="${version}"?>
+
+    <?define WDKDirectory="C:\Program Files (x86)\Windows Kits\8.1\"?>
+
+    <Product
+        Name         = '$(var.Name)'
+        Manufacturer = '$(var.Manufacturer)'
+        Id           = "*"
+        UpgradeCode  = '$(var.UpgradeCode)'
+        Language     = '$(var.Language)'
+        Codepage     = '$(var.Codepage)'
+        Version      = '$(var.ProductVersion)' >
+    <Package
+        Id               = '*'
+        Manufacturer     = '$(var.Manufacturer)'
+        Languages        = '$(var.Language)'
+        Compressed       = 'yes'
+        SummaryCodepage  = '$(var.Codepage)' />
+
+    <MajorUpgrade
+      DowngradeErrorMessage="A later version of $(var.Name) is already installed. Setup will now exit."/>
+
+        <Media Id='1' Cabinet='Setup.cab' EmbedCab='yes' />
+        <Icon Id="${artifactId}" SourceFile="${artifactId}.exe" />
+        <Property Id="ARPPRODUCTICON" Value="${artifactId}" />
+        <WixVariable Id="WixUILicenseRtf" Value="Resources_installer\Apache2.rtf" />
+        <WixVariable Id="WixUIBannerBmp" Value="Resources_installer\ORBanner.bmp" />
+        <WixVariable Id="WixUIDialogBmp" Value="Resources_installer\ORDialog.bmp" />
+        <WixVariable Id="WixUIInfoIco" Value="Resources_installer\warning-outline.ico" />
+        <WixVariable Id="WixUIExclamationIco" Value="Resources_installer\warning-outline.ico" />
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="ProgramFilesFolder">
+                <Directory Id="OpenRoberta" Name="OpenRoberta">
+                    <Directory Id="INSTALLDIR" Name="${artifactId}">
+                        <Directory Id="Drivers" Name="Drivers">
+                            <Component Id="DPInst_x86" Guid="*">
+                                <File Id="DPInst.exe_x86" Name="DPInst.exe" Vital="yes" DiskId="1"  Source="$(var.WDKDirectory)\redist\DIFx\dpinst\MultiLin\x86\dpinst.exe" KeyPath="yes" />
+                                <Condition>NOT VersionNT64</Condition>
+                            </Component>
+                            <Component Id="DPInst_x64" Guid="*">
+                                <File Id="DPInst.exe_x64" Name="DPInst.exe" Vital="yes" DiskId="1"  Source="$(var.WDKDirectory)\redist\DIFx\dpinst\MultiLin\x64\dpinst.exe" KeyPath="yes" />
+                                <Condition>VersionNT64</Condition>
+                            </Component>
+                            <Component Id="rndiscmp" Guid="*">
+                                <File Id="rndiscmp.inf" Name="rndiscmp.inf" Source="Drivers\rndiscmp.inf" KeyPath="yes" />
+                            </Component>
+                        </Directory>
+                        <Component Id="MainExecutable" Guid="*">
+                            <File Id="OpenRobertaConnectorEXE" Source="${artifactId}.exe" KeyPath="yes"/>
+                        </Component>
+                     </Directory>
+                </Directory>
+            </Directory>
+            <Directory Id="ProgramMenuFolder" Name="Programs">
+                <Directory Id="ProgramMenuDir" Name="OpenRoberta">
+                    <Component Id="ProgramMenuDir" Guid="*">
+                        <Shortcut Id="StartMenuShortcut" Name="Open Roberta Connector" Description="Open Roberta Connector" Target="[INSTALLDIR]${artifactId}.exe"
+                        WorkingDirectory="INSTALLDIR" />
+                        <RemoveFolder Id="ProgramMenuDir" On="uninstall" />
+                        <RegistryValue Root="HKCU" Key="Software\OpenRoberta" Name="startmenuinstalled" Type="integer" Value="1" KeyPath="yes" />
+                    </Component>
+                </Directory>
+            </Directory>
+            <Directory Id="DesktopFolder" Name="Desktop">
+                <Component Id="DesktopDir" Guid="*">
+                    <Shortcut Id="DesktopShortcut" Name="Open Roberta Connector" Description="Open Roberta Connector" Target="[INSTALLDIR]${artifactId}.exe" WorkingDirectory="INSTALLDIR" />
+                    <RemoveFolder Id="DesktopFolder" On="uninstall" />
+                    <RegistryValue Root="HKCU" Key="Software\OpenRoberta" Name="desktopinstalled" Type="integer" Value="1" KeyPath="yes" />
+                </Component>
+            </Directory>
+        </Directory>
+
+        <Feature Id="Complete" Level="1" Title="Open Roberta Connector" Description="The complete package."
+                Display="expand" ConfigurableDirectory="INSTALLDIR">
+
+            <Feature Id="Drivers" Level="1" ConfigurableDirectory="TARGETDIR" Description="Drivers"  Title="Drivers" >
+                <Feature Id='DPInst_x86' Level='0' Display="hidden">
+                    <ComponentRef Id='DPInst_x86' />
+                    <Condition Level="1">NOT VersionNT64</Condition>
+                </Feature>
+                <Feature Id='DPInst_x64' Level='0'>
+                    <ComponentRef Id='DPInst_x64' />
+                    <Condition Level="1">VersionNT64</Condition>
+                </Feature>
+            </Feature>
+            <Feature Id='MainProgram' Title='Description' Description='The main part of the Connector.' Level='1'>
+                <ComponentRef Id="MainExecutable"/>
+                <ComponentRef Id="rndiscmp" />
+                <ComponentRef Id="ProgramMenuDir" />
+                <ComponentRef Id="DesktopDir" />
+                <ComponentGroupRef Id='Resources' />
+                <ComponentGroupRef Id='Libs' />
+            </Feature>
+        </Feature>
+        <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+
+        <CustomAction Id='BeginDriverInstallation' BinaryKey='SystemRestore' JScriptCall='BeginDriverInstallation' Execute='deferred' Return='check' />
+        <CustomAction Id='EndDriverInstallation' BinaryKey='SystemRestore' JScriptCall='EndDriverInstallation' Execute='deferred' Return='check' />
+        <CustomAction Id='Install_Unsigned_Driver' Execute='deferred' Directory='Drivers' ExeCommand='cmd.exe /c start &quot;&quot; /min DPInst.exe /SA /SW /PATH &quot;./&quot;' Return='check' />
+        <CustomAction Id='Uninstall_Unsigned_Driver' Execute='deferred' Directory='Drivers' ExeCommand='cmd.exe /c start &quot;&quot; /min DPinst.exe /U &quot;./rndiscmp.inf&quot; /SW /D' Return='check' />
+
+        <UIRef Id="WixUI_InstallDir" />
+        <UIRef Id="WixUI_ErrorProgressText" />
+
+        <InstallExecuteSequence>
+            <Custom Action="BeginDriverInstallation" After="InstallFiles">NOT Installed</Custom>
+            <Custom Action="Install_Unsigned_Driver" After="BeginDriverInstallation">NOT Installed</Custom>
+            <Custom Action="EndDriverInstallation" After="Install_Unsigned_Driver">NOT Installed</Custom>
+            <Custom Action="Uninstall_Unsigned_Driver" After="RemoveRegistryValues">Installed</Custom>
+        </InstallExecuteSequence>
+        <Binary Id="SystemRestore" SourceFile="Scripts\SystemRestore.js" />
+    </Product>
+</Wix>
