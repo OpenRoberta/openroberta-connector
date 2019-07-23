@@ -13,26 +13,28 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import de.fhg.iais.roberta.connection.IDetector;
+import de.fhg.iais.roberta.connection.IRobot;
 import de.fhg.iais.roberta.util.IOraListener;
 
 /**
  * Helper class for robot detection.
  * Creates callables for each detector which return the respective detected robots.
  */
-public class RobotDetectorHelper implements IOraListener<Robot> {
+public class RobotDetectorHelper implements IOraListener<IRobot> {
     private static final Logger LOG = LoggerFactory.getLogger(RobotDetectorHelper.class);
 
     private static final int POOL_SIZE = 4;
 
     private final ExecutorService executorService = Executors.newFixedThreadPool(POOL_SIZE);
-    private final Map<IDetector, Future<List<Robot>>> futures = new HashMap<>();
+    private final Map<IDetector, Future<List<IRobot>>> futures = new HashMap<>();
     private final Map<IDetector, Boolean> ranOnce = new HashMap<>();
 
-    private Robot selectedRobot = null;
+    private IRobot selectedRobot = null;
 
     /**
      * Constructor for the robot detector helper.
      * Starts the detectors and registers the corresponding futures in a map.
+     *
      * @param detectors a list of detectors that should be used to find robots
      */
     public RobotDetectorHelper(List<IDetector> detectors) {
@@ -45,15 +47,16 @@ public class RobotDetectorHelper implements IOraListener<Robot> {
     /**
      * Returns a list of currently detected robots.
      * Checks the detectors, finished detectors are restarted.
+     *
      * @return a list of currently detected robots
      */
-    public List<Robot> getDetectedRobots() {
-        List<Robot> robots = new ArrayList<>();
+    public List<IRobot> getDetectedRobots() {
+        List<IRobot> robots = new ArrayList<>();
 
         // Check each detector future
-        for ( Map.Entry<IDetector, Future<List<Robot>>> entry : this.futures.entrySet() ) {
+        for ( Map.Entry<IDetector, Future<List<IRobot>>> entry : this.futures.entrySet() ) {
             IDetector detector = entry.getKey();
-            Future<List<Robot>> future = entry.getValue();
+            Future<List<IRobot>> future = entry.getValue();
 
             // If the future is done add the results to the list and start the detector again
             if ( future.isDone() ) {
@@ -77,6 +80,7 @@ public class RobotDetectorHelper implements IOraListener<Robot> {
 
     /**
      * Returns whether all detectors ran at least once.
+     *
      * @return whether each detector ran at least once
      */
     public boolean allDetectorsRanOnce() {
@@ -85,14 +89,15 @@ public class RobotDetectorHelper implements IOraListener<Robot> {
 
     /**
      * Returns the currently selected robot.
+     *
      * @return the currently selected robot, null if none is selected
      */
-    public Robot getSelectedRobot() {
+    public IRobot getSelectedRobot() {
         return this.selectedRobot;
     }
 
     @Override
-    public void update(Robot object) {
+    public void update(IRobot object) {
         this.selectedRobot = object;
     }
 

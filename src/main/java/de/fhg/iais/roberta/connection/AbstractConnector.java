@@ -1,7 +1,5 @@
 package de.fhg.iais.roberta.connection;
 
-import de.fhg.iais.roberta.util.IOraListener;
-import de.fhg.iais.roberta.util.PropertyHelper;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +7,10 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public abstract class AbstractConnector implements IConnector {
+import de.fhg.iais.roberta.util.IOraListener;
+import de.fhg.iais.roberta.util.PropertyHelper;
+
+public abstract class AbstractConnector<T extends IRobot> implements IConnector<T> {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractConnector.class);
 
     private final Collection<IOraListener<State>> listeners = new ArrayList<>();
@@ -21,14 +22,14 @@ public abstract class AbstractConnector implements IConnector {
 
     protected State state = State.DISCOVER; // First state when program starts
     protected String token = "";
-    protected String brickName;
+    protected T robot;
 
-    protected AbstractConnector(String brickName) {
+    protected AbstractConnector(T robot) {
         String serverIp = PropertyHelper.getInstance().getProperty("serverIp");
         String serverPort = PropertyHelper.getInstance().getProperty("serverPort");
         this.defaultServerAddress = serverIp + ':' + serverPort;
         this.serverCommunicator = new ServerCommunicator(this.defaultServerAddress);
-        this.brickName = brickName;
+        this.robot = robot;
     }
 
     private boolean running = false;
@@ -36,7 +37,7 @@ public abstract class AbstractConnector implements IConnector {
     @Override
     public void run() {
         this.running = true;
-        LOG.info("Starting {} connector with server address {}", this.brickName, this.defaultServerAddress);
+        LOG.info("Starting {} connector with server address {}", this.robot.getName(), this.defaultServerAddress);
         while ( this.running ) {
             this.runLoopBody();
 
@@ -68,8 +69,8 @@ public abstract class AbstractConnector implements IConnector {
     }
 
     @Override
-    public String getBrickName() {
-        return this.brickName;
+    public T getRobot() {
+        return this.robot;
     }
 
     @Override

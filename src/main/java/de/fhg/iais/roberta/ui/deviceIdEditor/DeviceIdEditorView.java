@@ -3,6 +3,7 @@ package de.fhg.iais.roberta.ui.deviceIdEditor;
 import de.fhg.iais.roberta.connection.arduino.ArduinoType;
 import de.fhg.iais.roberta.ui.OraButtonColumn;
 import de.fhg.iais.roberta.ui.OraTable;
+import de.fhg.iais.roberta.ui.main.ImageHelper;
 import de.fhg.iais.roberta.util.ArduinoIdFileHelper;
 import de.fhg.iais.roberta.util.IOraUiListener;
 import de.fhg.iais.roberta.util.SerialDevice;
@@ -11,8 +12,6 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultCellEditor;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -31,16 +30,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.ResourceBundle;
 
 import static de.fhg.iais.roberta.ui.deviceIdEditor.DeviceIdEditorController.getDevicesTableData;
-import static de.fhg.iais.roberta.ui.main.MainView.ICON_TITLE;
-import static de.fhg.iais.roberta.ui.main.MainView.IMAGES_PATH;
 
 class DeviceIdEditorView extends JDialog {
-    private static final Icon PLUS = new ImageIcon(Objects.requireNonNull(DeviceIdEditorView.class.getClassLoader().getResource(IMAGES_PATH + "plus.png")));
-    private static final Icon MINUS = new ImageIcon(Objects.requireNonNull(DeviceIdEditorView.class.getClassLoader().getResource(IMAGES_PATH + "minus.png")));
+    private static final String FILENAME_PLUS = "plus.png";
+    private static final String FILENAME_MINUS = "minus.png";
 
     static final String CMD_ADD_ENTRY = "add_entry";
     static final String CMD_REMOVE_ENTRY = "remove_entry";
@@ -84,7 +80,7 @@ class DeviceIdEditorView extends JDialog {
 
         // Titlebar
         this.setTitle(messages.getString("idEditor"));
-        this.setIconImage(ICON_TITLE.getImage());
+        this.setIconImage(ImageHelper.getTitleIconImage());
 
         this.add(this.pnlInfo);
         this.pnlInfo.setLayout(new FlowLayout(FlowLayout.LEADING));
@@ -213,7 +209,7 @@ class DeviceIdEditorView extends JDialog {
         entry.add(vendorId);
         entry.add(productId);
         entry.add(port);
-        entry.add(PLUS);
+        entry.add(ImageHelper.getIcon(FILENAME_PLUS));
         return entry;
     }
 
@@ -222,7 +218,7 @@ class DeviceIdEditorView extends JDialog {
         entry.add(vendorId);
         entry.add(productId);
         entry.add((arduinoType == ArduinoType.NONE) ? "" : arduinoType);
-        entry.add(MINUS);
+        entry.add(ImageHelper.getIcon(FILENAME_MINUS));
         return entry;
     }
 

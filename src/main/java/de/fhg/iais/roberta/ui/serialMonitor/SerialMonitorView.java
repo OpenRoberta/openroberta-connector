@@ -3,6 +3,7 @@ package de.fhg.iais.roberta.ui.serialMonitor;
 import org.apache.commons.codec.Charsets;
 
 import de.fhg.iais.roberta.ui.OraButton;
+import de.fhg.iais.roberta.ui.main.ImageHelper;
 import de.fhg.iais.roberta.util.IOraUiListener;
 
 import javax.swing.BorderFactory;
@@ -18,10 +19,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.nio.charset.Charset;
 import java.util.ResourceBundle;
 
-import static de.fhg.iais.roberta.ui.main.MainView.ICON_TITLE;
 
 class SerialMonitorView extends JFrame {
 
@@ -46,7 +45,7 @@ class SerialMonitorView extends JFrame {
         this.addWindowListener(listener);
 
         // Titlebar
-        this.setIconImage(ICON_TITLE.getImage());
+        this.setIconImage(ImageHelper.getTitleIconImage());
         this.setTitle(messages.getString("serialMonitor"));
 
         this.add(this.scrollPane, BorderLayout.CENTER);

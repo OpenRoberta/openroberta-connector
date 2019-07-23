@@ -1,7 +1,5 @@
 package de.fhg.iais.roberta.connection;
 
-import de.fhg.iais.roberta.main.Robot;
-
 import java.util.List;
 
 /**
@@ -10,13 +8,8 @@ import java.util.List;
 public interface IDetector {
     /**
      * Checks whether robots targeted by this detector are available.
+     *
      * @return a list of the available robots
      */
-    List<Robot> detectRobots();
-
-    /**
-     * Specifies which class of robot this connector supports.
-     * @return the robot class
-     */
-    Class<? extends Robot> getRobotClass();
+    List<IRobot> detectRobots();
 }

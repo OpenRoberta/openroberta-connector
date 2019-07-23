@@ -1,6 +1,5 @@
 package de.fhg.iais.roberta.connection.arduino;
 
-import de.fhg.iais.roberta.util.PropertyHelper;
 import org.apache.commons.lang3.SystemUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -9,17 +8,17 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 
+import de.fhg.iais.roberta.util.PropertyHelper;
+
 class ArduinoCommunicator {
     private static final Logger LOG = LoggerFactory.getLogger(ArduinoCommunicator.class);
 
     private String avrPath = ""; //path for avrdude bin
     private String avrConfPath = ""; //path for the .conf file
-    private final String brickName;
-    private final ArduinoType type;
+    private final Arduino arduino;
 
-    ArduinoCommunicator(String brickName, ArduinoType type) {
-        this.brickName = brickName;
-        this.type = type;
+    ArduinoCommunicator(Arduino arduino) {
+        this.arduino = arduino;
     }
 
     private void setParameters() {
@@ -44,15 +43,15 @@ class ArduinoCommunicator {
     JSONObject getDeviceInfo() {
         JSONObject deviceInfo = new JSONObject();
 
-        deviceInfo.put("firmwarename", this.type.toString());
-        deviceInfo.put("robot", this.type.toString());
-        deviceInfo.put("brickname", this.brickName);
+        deviceInfo.put("firmwarename", this.arduino.getType().toString());
+        deviceInfo.put("robot", this.arduino.getType().toString());
+        deviceInfo.put("brickname", this.arduino.getName());
 
         return deviceInfo;
     }
 
     void uploadFile(String portName, String filePath) {
-        setParameters();
+        this.setParameters();
         String portPath = "/dev/";
         if ( SystemUtils.IS_OS_WINDOWS ) {
             portPath = "";
@@ -61,7 +60,7 @@ class ArduinoCommunicator {
             String pArg;
             String cArg;
             String eArg = "";
-            switch ( this.type ) {
+            switch ( this.arduino.getType() ) {
                 // specify if different
                 case MEGA:
                     pArg = "-patmega2560";
@@ -82,14 +81,14 @@ class ArduinoCommunicator {
             ProcessBuilder
                 processBuilder =
                 new ProcessBuilder(this.avrPath,
-                    "-v",
-                    "-D",
-                    pArg,
-                    cArg,
-                    "-Uflash:w:" + filePath + ":i",
-                    "-C" + this.avrConfPath,
-                    "-P" + portPath + portName,
-                    eArg);
+                                   "-v",
+                                   "-D",
+                                   pArg,
+                                   cArg,
+                                   "-Uflash:w:" + filePath + ":i",
+                                   "-C" + this.avrConfPath,
+                                   "-P" + portPath + portName,
+                                   eArg);
 
             //            processBuilder.redirectInput(Redirect.INHERIT);
             //            processBuilder.redirectOutput(Redirect.INHERIT);

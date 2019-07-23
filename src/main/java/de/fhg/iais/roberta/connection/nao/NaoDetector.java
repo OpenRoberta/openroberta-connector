@@ -23,7 +23,7 @@ import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceInfo;
 
 import de.fhg.iais.roberta.connection.IDetector;
-import de.fhg.iais.roberta.main.Robot;
+import de.fhg.iais.roberta.connection.IRobot;
 
 /**
  * Detector class for NAO robots. Searches for NAOs in all network connections.
@@ -34,9 +34,13 @@ public class NaoDetector implements IDetector {
     private static final String NAO_SERVICE_TYPE = "_naoqi._tcp.local.";
     private static final long TIMEOUT = 1000L;
 
+    public NaoDetector() {
+
+    }
+
     @Override
-    public List<Robot> detectRobots() {
-        Collection<Robot> detectedRobots = new HashSet<>();
+    public List<IRobot> detectRobots() {
+        Collection<IRobot> detectedRobots = new HashSet<>();
 
         try {
             Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
@@ -53,7 +57,7 @@ public class NaoDetector implements IDetector {
                     InetAddress address = addresses.nextElement();
                     LOG.info("Looking in {} {}", currentNif.getName(), address);
 
-                    Robot robot = detectNaoOnAddress(address, currentNif);
+                    IRobot robot = detectNaoOnAddress(address, currentNif);
                     if ( robot != null ) {
                         detectedRobots.add(robot);
                     }
@@ -68,7 +72,7 @@ public class NaoDetector implements IDetector {
         }
 
         // Remove duplicates, filters the NAOs by name
-        return detectedRobots.stream().filter(distinctByKey(Robot::getName)).collect(Collectors.toList());
+        return detectedRobots.stream().filter(distinctByKey(IRobot::getName)).collect(Collectors.toList());
     }
 
     /**
@@ -93,7 +97,7 @@ public class NaoDetector implements IDetector {
      * @throws IOException          if something went wrong with the JmDNS creation
      * @throws UnknownHostException if the network interface could not be added to the found address
      */
-    private static Robot detectNaoOnAddress(InetAddress address, NetworkInterface nif) throws IOException, UnknownHostException {
+    private static IRobot detectNaoOnAddress(InetAddress address, NetworkInterface nif) throws IOException, UnknownHostException {
         try (JmDNS jmDNS = JmDNS.create(address, address.getHostName())) {
             ServiceInfo[] list = jmDNS.list(NAO_SERVICE_TYPE, TIMEOUT);
 
@@ -115,10 +119,5 @@ public class NaoDetector implements IDetector {
             }
         }
         return null;
-    }
-
-    @Override
-    public Class<? extends Robot> getRobotClass() {
-        return Nao.class;
     }
 }

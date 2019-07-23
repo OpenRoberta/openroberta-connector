@@ -1,9 +1,5 @@
 package de.fhg.iais.roberta.connection.arduino;
 
-import de.fhg.iais.roberta.connection.IDetector;
-import de.fhg.iais.roberta.main.Robot;
-import de.fhg.iais.roberta.util.Pair;
-import de.fhg.iais.roberta.util.SerialDevice;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
@@ -25,6 +21,11 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import de.fhg.iais.roberta.connection.IDetector;
+import de.fhg.iais.roberta.connection.IRobot;
+import de.fhg.iais.roberta.util.Pair;
+import de.fhg.iais.roberta.util.SerialDevice;
+
 import static de.fhg.iais.roberta.util.ArduinoIdFileHelper.load;
 
 public class ArduinoDetector implements IDetector {
@@ -44,8 +45,8 @@ public class ArduinoDetector implements IDetector {
     }
 
     @Override
-    public List<Robot> detectRobots() {
-        List<Robot> detectedRobots = new ArrayList<>();
+    public List<IRobot> detectRobots() {
+        List<IRobot> detectedRobots = new ArrayList<>();
 
         Pair<Map<SerialDevice, ArduinoType>, Map<Integer, String>> loadIdsResult = load();
         this.supportedRobots = loadIdsResult.getFirst();
@@ -56,7 +57,7 @@ public class ArduinoDetector implements IDetector {
         for ( SerialDevice device : devices ) {
             ArduinoType arduinoType = this.supportedRobots.get(device);
 
-            if (arduinoType != null) {
+            if ( arduinoType != null ) {
                 detectedRobots.add(new Arduino(arduinoType, device.port));
             }
         }
@@ -88,8 +89,7 @@ public class ArduinoDetector implements IDetector {
 
             // if the id files exist check the content
             if ( idVendorFile.exists() && idProductFile.exists() ) {
-                try (Stream<String> vendorLines = Files.lines(idVendorFile.toPath());
-                     Stream<String> productLines = Files.lines(idProductFile.toPath())){
+                try (Stream<String> vendorLines = Files.lines(idVendorFile.toPath()); Stream<String> productLines = Files.lines(idProductFile.toPath())) {
 
                     String idVendor = vendorLines.findFirst().get();
                     String idProduct = productLines.findFirst().get();
@@ -103,13 +103,13 @@ public class ArduinoDetector implements IDetector {
 
                             // look for a directory containing tty, in case its only called tty look into it to find the real name
                             subSubDirs.stream()
-                                .filter(s -> s.getName().contains("tty"))
-                                .findFirst()
-                                .ifPresent(f -> port[0] = f.getName().equals("tty") ? f.list()[0] : f.getName());
+                                      .filter(s -> s.getName().contains("tty"))
+                                      .findFirst()
+                                      .ifPresent(f -> port[0] = f.getName().equals("tty") ? f.list()[0] : f.getName());
                         }
                     }
 
-                    if (port[0] != null) {
+                    if ( port[0] != null ) {
                         devices.add(new SerialDevice(idVendor, idProduct, port[0], ""));
                     }
 
@@ -124,10 +124,9 @@ public class ArduinoDetector implements IDetector {
     private static List<SerialDevice> getUsbDevicesWindows() {
         List<SerialDevice> devices = new ArrayList<>();
 
-        ProcessBuilder processBuilder = new ProcessBuilder(
-                "powershell.exe",
-                "-Command",
-                "Get-WmiObject -Query \\\"SELECT Name, DeviceID FROM Win32_PnPEntity\\\"");
+        ProcessBuilder
+            processBuilder =
+            new ProcessBuilder("powershell.exe", "-Command", "Get-WmiObject -Query \\\"SELECT Name, DeviceID FROM Win32_PnPEntity\\\"");
         try {
             Process pr = processBuilder.start();
             // Output stream has to be closed to work around process buffer size hanging
@@ -162,9 +161,7 @@ public class ArduinoDetector implements IDetector {
         try {
             Runtime rt = Runtime.getRuntime();
             String[] commands = {
-                "/bin/sh",
-                "-c",
-                "ioreg -r -c IOUSBHostDevice -l | grep -B30 IOTTYDevice"
+                "/bin/sh", "-c", "ioreg -r -c IOUSBHostDevice -l | grep -B30 IOTTYDevice"
             };
             Process pr = rt.exec(commands);
 
@@ -176,13 +173,13 @@ public class ArduinoDetector implements IDetector {
                 Matcher ttyMatcher = Pattern.compile("\"IOTTYDevice\" = \"(.*)\"").matcher(result);
                 Matcher nameMatcher = Pattern.compile("\"Product Name\" = \"(.*)\"").matcher(result);
 
-                while (idVendorMatcher.find() && idProductMatcher.find() && ttyMatcher.find()) {
+                while ( idVendorMatcher.find() && idProductMatcher.find() && ttyMatcher.find() ) {
                     String idVendorDec = idVendorMatcher.group(1);
                     String idProductDec = idProductMatcher.group(1);
                     String tty = "tty." + ttyMatcher.group(1);
 
                     String name = "";
-                    if (nameMatcher.find()) {
+                    if ( nameMatcher.find() ) {
                         name = nameMatcher.group(1);
                     }
                     String idVendor = String.format("%04X", Integer.valueOf(idVendorDec));
@@ -195,10 +192,5 @@ public class ArduinoDetector implements IDetector {
             LOG.error("Something went wrong while trying to get ioreg output: {}", e.getMessage());
         }
         return devices;
-    }
-
-    @Override
-    public Class<? extends Robot> getRobotClass() {
-        return Arduino.class;
     }
 }

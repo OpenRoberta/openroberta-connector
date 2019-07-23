@@ -2,9 +2,10 @@ package de.fhg.iais.roberta.connection.ev3;
 
 import java.util.Objects;
 
-import de.fhg.iais.roberta.main.Robot;
+import de.fhg.iais.roberta.connection.IConnector;
+import de.fhg.iais.roberta.connection.IRobot;
 
-public class Ev3 implements Robot {
+public class Ev3 implements IRobot {
     private final String name;
 
     public Ev3(String name) {
@@ -14,6 +15,16 @@ public class Ev3 implements Robot {
     @Override
     public String getName() {
         return this.name;
+    }
+
+    @Override
+    public ConnectionType getConnectionType() {
+        return ConnectionType.WIRED;
+    }
+
+    @Override
+    public IConnector<? extends IRobot> createConnector() {
+        return new Ev3Connector(this);
     }
 
     @Override

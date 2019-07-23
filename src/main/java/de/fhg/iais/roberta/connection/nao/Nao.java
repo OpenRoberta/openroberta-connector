@@ -3,18 +3,20 @@ package de.fhg.iais.roberta.connection.nao;
 import java.net.InetAddress;
 import java.util.Objects;
 
-import de.fhg.iais.roberta.main.Robot;
+import de.fhg.iais.roberta.connection.IConnector;
+import de.fhg.iais.roberta.connection.IRobot;
 
 /**
  * Implementation of the NAO robot.
  */
-public class Nao implements Robot {
+public class Nao implements IRobot {
     private final String name;
     private final InetAddress address;
 
     /**
      * Constructor for the NAO robot.
-     * @param name the robot name
+     *
+     * @param name    the robot name
      * @param address the robot address
      */
     public Nao(String name, InetAddress address) {
@@ -27,8 +29,19 @@ public class Nao implements Robot {
         return this.name;
     }
 
+    @Override
+    public ConnectionType getConnectionType() {
+        return ConnectionType.WIRELESS;
+    }
+
+    @Override
+    public IConnector<? extends IRobot> createConnector() {
+        return new NaoConnector(this);
+    }
+
     /**
      * Returns the internet address of the NAO.
+     *
      * @return the internet address of the NAO
      */
     public InetAddress getAddress() {

@@ -10,7 +10,7 @@ public interface IController {
      *
      * @param connector the connector that should be handled by this controller
      */
-    void setConnector(IConnector connector);
+    void setConnector(IConnector<?> connector);
 
     /**
      * Used as a listener for the connector state.

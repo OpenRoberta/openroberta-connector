@@ -1,6 +1,5 @@
 package de.fhg.iais.roberta.connection;
 
-import de.fhg.iais.roberta.main.Robot;
 import de.fhg.iais.roberta.util.IOraListenable;
 
 /**
@@ -9,7 +8,7 @@ import de.fhg.iais.roberta.util.IOraListenable;
  *
  * @author dpyka
  */
-public interface IConnector extends IOraListenable<IConnector.State> {
+public interface IConnector<T extends IRobot> extends IOraListenable<IConnector.State> {
 
     enum State {
         DISCOVER,
@@ -70,11 +69,11 @@ public interface IConnector extends IOraListenable<IConnector.State> {
     String getToken();
 
     /**
-     * Get the robot name to display in the gui.
+     * Returns the robot the connector is currently connected with.
      *
-     * @return robot name
+     * @return the current robot
      */
-    String getBrickName();
+    T getRobot();
 
     String getCurrentServerAddress();
 
@@ -89,10 +88,4 @@ public interface IConnector extends IOraListenable<IConnector.State> {
      * If gui fields are empty but advanced options is checked, use the default server address.
      */
     void resetToDefaultServerAddress();
-
-    /**
-     * Specifies which class of robot this connector supports.
-     * @return the robot class
-     */
-    Class<? extends Robot> getRobotClass();
 }

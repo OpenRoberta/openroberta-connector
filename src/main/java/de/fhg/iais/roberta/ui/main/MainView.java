@@ -19,15 +19,12 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowListener;
-import java.io.File;
 import java.util.List;
-import java.util.Objects;
 import java.util.ResourceBundle;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
@@ -46,21 +43,22 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.WindowConstants;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.text.DefaultEditorKit;
 
+import de.fhg.iais.roberta.connection.IRobot;
 import de.fhg.iais.roberta.main.UpdateInfo;
 import de.fhg.iais.roberta.ui.OraButton;
 import de.fhg.iais.roberta.ui.OraToggleButton;
+import de.fhg.iais.roberta.ui.UiState;
 import de.fhg.iais.roberta.util.IOraUiListener;
 import de.fhg.iais.roberta.util.Pair;
 
-import static de.fhg.iais.roberta.ui.main.RobotButton.State.CONNECTED;
-import static de.fhg.iais.roberta.ui.main.RobotButton.State.DISCOVERED;
-import static de.fhg.iais.roberta.ui.main.RobotButton.State.NOT_DISCOVERED;
+import static de.fhg.iais.roberta.ui.main.ImageHelper.getGif;
 
 public class MainView extends JFrame {
     private static final Logger LOG = LoggerFactory.getLogger(MainView.class);
@@ -79,8 +77,6 @@ public class MainView extends JFrame {
     static final String CMD_HELP = "help";
     static final String CMD_ID_EDITOR = "id_editor";
     static final String CMD_COPY = "copy";
-
-    public static final String IMAGES_PATH = "images/"; // has to be simple slash not File.separator because its used in classpath
 
     private static final Color BUTTON_FOREGROUND_COLOR = Color.WHITE;
     public static final Color BUTTON_BACKGROUND_COLOR = Color.decode("#b7d032"); // light lime green
@@ -206,7 +202,6 @@ public class MainView extends JFrame {
 
     // -- Gif --
     private final JPanel pnlGif = new JPanel();
-    private final JLabel lblGif = new JLabel();
 
     // -- Info --
     private final JTextArea txtAreaInfo = new JTextArea();
@@ -246,18 +241,10 @@ public class MainView extends JFrame {
     private static final String CARD_CUSTOM_EMPTY = "customEmpty";
 
     // Resources
-    public static final ImageIcon ICON_TITLE = new ImageIcon(Objects.requireNonNull(MainView.class.getClassLoader().getResource(IMAGES_PATH + "OR.png")));
-    private static final Icon GIF_PLUG = new ImageIcon(Objects.requireNonNull(MainView.class.getClassLoader().getResource(IMAGES_PATH + "plug.gif")));
-    private static final Icon GIF_CONNECT = new ImageIcon(Objects.requireNonNull(MainView.class.getClassLoader().getResource(IMAGES_PATH + "connect.gif")));
-    private static final Icon GIF_SERVER = new ImageIcon(Objects.requireNonNull(MainView.class.getClassLoader().getResource(IMAGES_PATH + "server.gif")));
-    private static final Icon GIF_CONNECTED = new ImageIcon(Objects.requireNonNull(MainView.class.getClassLoader().getResource(IMAGES_PATH + "connected.gif")));
-    private static final Icon
-        ARROW_DOWN =
-        new ImageIcon(Objects.requireNonNull(MainView.class.getClassLoader().getResource(IMAGES_PATH + "arrow-sorted-down.png")));
-    private static final Icon
-        ARROW_UP =
-        new ImageIcon(Objects.requireNonNull(MainView.class.getClassLoader().getResource(IMAGES_PATH + "arrow-sorted-up.png")));
-    private static final Icon CLIPBOARD = new ImageIcon(Objects.requireNonNull(MainView.class.getClassLoader().getResource(IMAGES_PATH + "clipboard.png")));
+    private static final String FILENAME_ARROW_DOWN = "arrow-sorted-down.png";
+    private static final String FILENAME_ARROW_UP = "arrow-sorted-up.png";
+    private static final String FILENAME_CLIPBOARD = "clipboard.png";
+
     private final ResourceBundle messages;
 
     private boolean toggle = true;
@@ -294,7 +281,7 @@ public class MainView extends JFrame {
         this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
         // Titlebar
-        this.setIconImage(ICON_TITLE.getImage());
+        this.setIconImage(ImageHelper.getTitleIconImage());
         this.setTitle(this.messages.getString("title"));
     }
 
@@ -334,7 +321,7 @@ public class MainView extends JFrame {
 
         // Icon
         this.menu.add(this.butRobot);
-        this.butRobot.setState(NOT_DISCOVERED);
+        this.butRobot.setState(UiState.DISCOVERING);
         this.butRobot.setActionCommand(CMD_HELP);
     }
 
@@ -433,7 +420,7 @@ public class MainView extends JFrame {
         this.txtFldToken.setEditable(false);
 
         this.pnlToken.add(this.butCopy);
-        this.butCopy.setIcon(CLIPBOARD);
+        this.butCopy.setIcon(ImageHelper.getIcon(FILENAME_CLIPBOARD));
         this.butCopy.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
         this.butCopy.setActionCommand(CMD_COPY);
 
@@ -448,9 +435,18 @@ public class MainView extends JFrame {
     private void initMainGifGUI(GridBagConstraints constraints) {
         // Main gif panel
         this.pnlCenter.add(this.pnlGif, constraints);
+        this.pnlGif.setLayout(new CardLayout());
+        ImageIcon gif = getGif(UiState.DISCOVERING, IRobot.ConnectionType.WIRED);
+        this.pnlGif.setPreferredSize(new Dimension(gif.getIconWidth(), gif.getIconHeight()));
 
-        this.pnlGif.add(this.lblGif);
-        this.pnlGif.setPreferredSize(new Dimension(GIF_CONNECT.getIconWidth(), GIF_CONNECT.getIconHeight()));
+        for ( UiState state : UiState.values() ) {
+            for ( IRobot.ConnectionType connectionType : IRobot.ConnectionType.values() ) {
+                JLabel label = new JLabel();
+                label.setIcon(getGif(state, connectionType));
+                label.setHorizontalAlignment(SwingConstants.CENTER);
+                this.pnlGif.add(label, state.toString() + connectionType);
+            }
+        }
     }
 
     private void initTextInfoGUI(GridBagConstraints constraints) {
@@ -517,7 +513,7 @@ public class MainView extends JFrame {
 
         this.pnlCustomInfo.add(this.butCustom);
         this.butCustom.setActionCommand("customaddress");
-        this.butCustom.setIcon(ARROW_DOWN);
+        this.butCustom.setIcon(ImageHelper.getIcon(FILENAME_ARROW_DOWN));
         this.butCustom.setText(this.messages.getString("checkCustomDesc"));
         this.butCustom.setBorderPainted(false);
         this.butCustom.setBackground(Color.WHITE);
@@ -585,39 +581,12 @@ public class MainView extends JFrame {
     }
 
     // States
-    void setWaitForConnect(String robotName) {
-        this.butRobot.setState(DISCOVERED);
-        this.butConnect.setEnabled(true);
-        this.butScan.setEnabled(true);
-        this.txtAreaInfo.setText(this.messages.getString("connectInfo"));
-        this.lblGif.setIcon(GIF_CONNECT);
-        this.showTopRobot(robotName);
-    }
-
-    void setWaitExecution() {
-        if ( this.toggle ) {
-            this.butRobot.setState(CONNECTED);
-        } else {
-            this.butRobot.setState(DISCOVERED);
-        }
-        this.toggle = !this.toggle;
-    }
-
-    void setWaitForCmd() {
-        this.butConnect.setText(this.messages.getString("disconnect"));
-        this.butConnect.setEnabled(true);
-        this.butConnect.setActionCommand(CMD_DISCONNECT);
-        this.butRobot.setState(CONNECTED);
-        this.txtAreaInfo.setText(this.messages.getString("serverInfo"));
-        this.lblGif.setIcon(GIF_CONNECTED);
-    }
-
     void setDiscover() {
         this.txtFldPreToken.setText("");
         this.txtFldToken.setText("");
         this.butCopy.setVisible(false);
         this.txtFldServer.setText("");
-        this.butRobot.setState(NOT_DISCOVERED);
+        this.butRobot.setState(UiState.DISCOVERING);
         this.butConnect.setText(this.messages.getString("connect"));
         this.butConnect.setSelected(false);
         this.butConnect.setEnabled(false);
@@ -625,10 +594,19 @@ public class MainView extends JFrame {
         this.butScan.setEnabled(false);
         this.butScan.setSelected(false);
         this.txtAreaInfo.setText(this.messages.getString("plugInInfo"));
-        this.lblGif.setIcon(GIF_PLUG);
+        ((CardLayout) this.pnlGif.getLayout()).show(this.pnlGif, UiState.DISCOVERING.toString() + IRobot.ConnectionType.WIRED);
         this.hideArduinoMenu();
         this.showTopEmpty();
         this.showCustomAddress();
+    }
+
+    void setWaitForConnect(String robotName, IRobot.ConnectionType connectionType) {
+        this.butRobot.setState(UiState.DISCOVERED);
+        this.butConnect.setEnabled(true);
+        this.butScan.setEnabled(true);
+        this.txtAreaInfo.setText(this.messages.getString("connectInfo"));
+        ((CardLayout) this.pnlGif.getLayout()).show(this.pnlGif, UiState.DISCOVERING.toString() + connectionType);
+        this.showTopRobot(robotName);
     }
 
     void setWaitForServer() {
@@ -637,7 +615,7 @@ public class MainView extends JFrame {
         this.showTopTokenServer();
     }
 
-    void setNew(String prefix, String token, String serverAddress, boolean showCopy) {
+    void setNew(IRobot.ConnectionType connectionType, String prefix, String token, String serverAddress, boolean showCopy) {
         this.butScan.setEnabled(false);
         this.txtFldPreToken.setText(prefix);
         this.txtFldToken.setText(token);
@@ -646,9 +624,9 @@ public class MainView extends JFrame {
         this.txtFldToken.setPreferredSize(null);
         // Add one pixel width to remove small scrolling
         this.txtFldPreToken.setPreferredSize(new Dimension((int) this.txtFldPreToken.getPreferredSize().getWidth() + 1,
-            (int) this.txtFldPreToken.getPreferredSize().getHeight()));
+                                                           (int) this.txtFldPreToken.getPreferredSize().getHeight()));
         this.txtFldToken.setPreferredSize(new Dimension((int) this.txtFldToken.getPreferredSize().getWidth() + 1,
-            (int) this.txtFldToken.getPreferredSize().getHeight()));
+                                                        (int) this.txtFldToken.getPreferredSize().getHeight()));
         this.butCopy.setVisible(showCopy);
 
         // strip default port from serverAddress
@@ -656,11 +634,29 @@ public class MainView extends JFrame {
 
         this.txtFldServer.setText(this.messages.getString("connectedTo") + ' ' + servAddress);
         this.txtAreaInfo.setText(this.messages.getString("tokenInfo"));
-        this.lblGif.setIcon(GIF_SERVER);
+        ((CardLayout) this.pnlGif.getLayout()).show(this.pnlGif, UiState.DISCOVERING.toString() + connectionType);
 
         // dont show advanced options anymore
         this.showCustomEmpty();
         this.hideAdvancedOptions();
+    }
+
+    void setWaitForCmd(IRobot.ConnectionType connectionType) {
+        this.butConnect.setText(this.messages.getString("disconnect"));
+        this.butConnect.setEnabled(true);
+        this.butConnect.setActionCommand(CMD_DISCONNECT);
+        this.butRobot.setState(UiState.CONNECTED);
+        this.txtAreaInfo.setText(this.messages.getString("serverInfo"));
+        ((CardLayout) this.pnlGif.getLayout()).show(this.pnlGif, UiState.DISCOVERING.toString() + connectionType);
+    }
+
+    void setWaitExecution() {
+        if ( this.toggle ) {
+            this.butRobot.setState(UiState.CONNECTED);
+        } else {
+            this.butRobot.setState(UiState.DISCOVERED);
+        }
+        this.toggle = !this.toggle;
     }
 
     // Individual settings and functions
@@ -724,19 +720,19 @@ public class MainView extends JFrame {
         this.setSize(size);
         this.pnlCustomHeading.setVisible(true);
         this.pnlCustomAddress.setVisible(true);
-        this.butCustom.setIcon(ARROW_UP);
+        this.butCustom.setIcon(ImageHelper.getIcon(FILENAME_ARROW_UP));
         this.customMenuVisible = true;
     }
 
     private void hideAdvancedOptions() {
-        if (this.customMenuVisible) {
+        if ( this.customMenuVisible ) {
             Dimension size = this.getSize();
 
             size.height -= ADDITIONAL_ADVANCED_HEIGHT;
             this.setSize(size);
             this.pnlCustomHeading.setVisible(false);
             this.pnlCustomAddress.setVisible(false);
-            this.butCustom.setIcon(ARROW_DOWN);
+            this.butCustom.setIcon(ImageHelper.getIcon(FILENAME_ARROW_DOWN));
             this.customMenuVisible = false;
         }
     }
@@ -792,6 +788,7 @@ public class MainView extends JFrame {
 
     /**
      * Changes the update text to the according status message.
+     *
      * @param updateStatus the status of the update check
      */
     void setUpdateButton(UpdateInfo.Status updateStatus) {

@@ -2,9 +2,10 @@ package de.fhg.iais.roberta.connection.arduino;
 
 import java.util.Objects;
 
-import de.fhg.iais.roberta.main.Robot;
+import de.fhg.iais.roberta.connection.IConnector;
+import de.fhg.iais.roberta.connection.IRobot;
 
-public class Arduino implements Robot {
+public class Arduino implements IRobot {
     private final ArduinoType type;
     private final String port;
 
@@ -16,6 +17,16 @@ public class Arduino implements Robot {
     @Override
     public String getName() {
         return this.type.getPrettyText();
+    }
+
+    @Override
+    public ConnectionType getConnectionType() {
+        return ConnectionType.WIRED;
+    }
+
+    @Override
+    public IConnector<? extends IRobot> createConnector() {
+        return new ArduinoConnector(this);
     }
 
     public ArduinoType getType() {

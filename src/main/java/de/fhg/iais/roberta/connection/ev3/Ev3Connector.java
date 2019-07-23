@@ -1,18 +1,18 @@
 package de.fhg.iais.roberta.connection.ev3;
 
-import de.fhg.iais.roberta.connection.AbstractConnector;
-import de.fhg.iais.roberta.connection.IConnector;
-import de.fhg.iais.roberta.connection.ServerCommunicator;
-import de.fhg.iais.roberta.main.Robot;
-import de.fhg.iais.roberta.util.OraTokenGenerator;
-import de.fhg.iais.roberta.util.Pair;
-import de.fhg.iais.roberta.util.PropertyHelper;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+
+import de.fhg.iais.roberta.connection.AbstractConnector;
+import de.fhg.iais.roberta.connection.IConnector;
+import de.fhg.iais.roberta.connection.ServerCommunicator;
+import de.fhg.iais.roberta.util.OraTokenGenerator;
+import de.fhg.iais.roberta.util.Pair;
+import de.fhg.iais.roberta.util.PropertyHelper;
 
 /**
  * Intended to be used as Singleton(!). This class handles two connections:
@@ -24,7 +24,7 @@ import java.io.IOException;
  * @author dpyka
  * {@link IConnector}
  */
-public class Ev3Connector extends AbstractConnector {
+public class Ev3Connector extends AbstractConnector<Ev3> {
     private static final Logger LOG = LoggerFactory.getLogger(Ev3Connector.class);
 
     private static final String brickIp = PropertyHelper.getInstance().getProperty("brickIp");
@@ -39,8 +39,8 @@ public class Ev3Connector extends AbstractConnector {
      * Instantiate the connector with specific properties from the file or use default options defined in this class.
      * Set up a communicator to the EV3 and to the Open Roberta server.
      */
-    public Ev3Connector() {
-        super("ev3");
+    Ev3Connector(Ev3 robot) {
+        super(robot);
 
         LOG.info("Robot ip {}", brickIp);
         this.ev3comm = new Ev3Communicator(brickIp);
@@ -194,22 +194,5 @@ public class Ev3Connector extends AbstractConnector {
     public void close() {
         super.close();
         this.ev3comm.shutdown();
-    }
-
-    @Override
-    public String getBrickName() {
-        // TODO whats in brickData?
-        if ( this.brickData != null ) {
-            String brickname = this.brickData.getString("brickname");
-            if ( brickname != null ) {
-                this.brickName = brickname;
-            }
-        }
-        return this.brickName;
-    }
-
-    @Override
-    public Class<? extends Robot> getRobotClass() {
-        return Ev3.class;
     }
 }

@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 import de.fhg.iais.roberta.connection.AbstractConnector;
-import de.fhg.iais.roberta.main.Robot;
 import de.fhg.iais.roberta.util.OraTokenGenerator;
 import de.fhg.iais.roberta.util.Pair;
 
@@ -20,7 +19,7 @@ import static de.fhg.iais.roberta.connection.IConnector.State.ERROR_UPLOAD_TO_RO
 /**
  * Connector class for NAO robots. Handles state and communication between robot, connector and server.
  */
-public class NaoConnector extends AbstractConnector {
+public class NaoConnector extends AbstractConnector<Nao> {
     private static final Logger LOG = LoggerFactory.getLogger(NaoConnector.class);
 
     private final NaoCommunicator naoCommunicator;
@@ -29,15 +28,17 @@ public class NaoConnector extends AbstractConnector {
 
     /**
      * Constructor for tha NAO connector.
+     *
      * @param nao the NAO that should be connected to
      */
-    public NaoConnector(Nao nao) {
-        super(nao.getName());
+    NaoConnector(Nao nao) {
+        super(nao);
         this.naoCommunicator = new NaoCommunicator(nao);
     }
 
     /**
      * Sets the password used in the SSH connection.
+     *
      * @param password the password
      */
     public void setPassword(String password) {
@@ -89,7 +90,6 @@ public class NaoConnector extends AbstractConnector {
             String command = serverResponse.getString("cmd");
             if ( command.equals(CMD_REPEAT) ) {
                 LOG.info("registration successful");
-                this.brickName = deviceInfo.getString("brickname"); // TODO why?
                 this.fire(State.WAIT_FOR_CMD);
             } else if ( command.equals(CMD_ABORT) ) {
                 LOG.info("registration timeout");
@@ -166,17 +166,11 @@ public class NaoConnector extends AbstractConnector {
     private void resetLastConnectionData() {
         LOG.info("resetting");
         this.token = "";
-        this.brickName = "";
     }
 
     @Override
     public void close() {
         super.close();
         this.serverCommunicator.shutdownNAO();
-    }
-
-    @Override
-    public Class<? extends Robot> getRobotClass() {
-        return Nao.class;
     }
 }

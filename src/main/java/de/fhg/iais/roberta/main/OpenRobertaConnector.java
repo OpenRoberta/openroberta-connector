@@ -11,14 +11,9 @@ import java.util.ResourceBundle;
 import java.util.Set;
 
 import de.fhg.iais.roberta.connection.IConnector;
-import de.fhg.iais.roberta.connection.arduino.Arduino;
-import de.fhg.iais.roberta.connection.arduino.ArduinoConnector;
+import de.fhg.iais.roberta.connection.IRobot;
 import de.fhg.iais.roberta.connection.arduino.ArduinoDetector;
-import de.fhg.iais.roberta.connection.ev3.Ev3;
-import de.fhg.iais.roberta.connection.ev3.Ev3Connector;
 import de.fhg.iais.roberta.connection.ev3.Ev3Detector;
-import de.fhg.iais.roberta.connection.nao.Nao;
-import de.fhg.iais.roberta.connection.nao.NaoConnector;
 import de.fhg.iais.roberta.connection.nao.NaoDetector;
 import de.fhg.iais.roberta.ui.main.MainController;
 import de.fhg.iais.roberta.util.PropertyHelper;
@@ -56,8 +51,8 @@ class OpenRobertaConnector {
 
         // Main loop, repeats until the program is closed
         while ( !Thread.currentThread().isInterrupted() ) {
-            Set<Robot> robots = new HashSet<>();
-            Robot selectedRobot = null;
+            Set<IRobot> robots = new HashSet<>();
+            IRobot selectedRobot = null;
             this.robotDetectorHelper.reset();
 
             while ( (selectedRobot == null) ) {
@@ -73,7 +68,7 @@ class OpenRobertaConnector {
 
                 // Connect to robot if only one was found
                 if ( this.robotDetectorHelper.allDetectorsRanOnce() && (robots.size() == 1) ) {
-                    selectedRobot = (Robot) robots.toArray()[0];
+                    selectedRobot = (IRobot) robots.toArray()[0];
                 }
 
                 // Repeat until a robot is available or one was selected
@@ -92,22 +87,15 @@ class OpenRobertaConnector {
                 previousTime = System.currentTimeMillis();
             }
 
-            // Create the appropriate connector depending on the robot
-            IConnector connector;
-
-            if ( selectedRobot instanceof Ev3 ) {
-                connector = new Ev3Connector();
-            } else if ( selectedRobot instanceof Arduino ) {
-                connector = new ArduinoConnector((Arduino) selectedRobot);
-            } else if ( selectedRobot instanceof Nao ) {
-                connector = new NaoConnector((Nao) selectedRobot);
-            } else {
+            if ( selectedRobot == null ) {
                 throw new UnsupportedOperationException("Selected robot not supported!");
             }
 
+            // Create the appropriate connector depending on the robot
+            IConnector<?> connector = selectedRobot.createConnector();
+
             this.controller.setConnector(connector);
             connector.run(); // Blocking until the connector is finished
-
             showHelp = false;
         }
     }

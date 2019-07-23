@@ -1,8 +1,5 @@
 package de.fhg.iais.roberta.connection.ev3;
 
-import de.fhg.iais.roberta.connection.IDetector;
-import de.fhg.iais.roberta.main.Robot;
-import de.fhg.iais.roberta.util.PropertyHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,13 +7,21 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.fhg.iais.roberta.connection.IDetector;
+import de.fhg.iais.roberta.connection.IRobot;
+import de.fhg.iais.roberta.util.PropertyHelper;
+
 public class Ev3Detector implements IDetector {
     private static final Logger LOG = LoggerFactory.getLogger(Ev3Detector.class);
     private static final String brickIp = PropertyHelper.getInstance().getProperty("brickIp");
 
+    public Ev3Detector() {
+
+    }
+
     @Override
-    public List<Robot> detectRobots() {
-        List<Robot> detectedRobots = new ArrayList<>(1); // only 1 ev3 supported at a time
+    public List<IRobot> detectRobots() {
+        List<IRobot> detectedRobots = new ArrayList<>(1); // only 1 ev3 supported at a time
 
         Ev3Communicator ev3comm = new Ev3Communicator(brickIp);
         try {
@@ -32,10 +37,5 @@ public class Ev3Detector implements IDetector {
         ev3comm.shutdown();
 
         return detectedRobots;
-    }
-
-    @Override
-    public Class<? extends Robot> getRobotClass() {
-        return Ev3.class;
     }
 }

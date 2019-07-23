@@ -1,10 +1,5 @@
 package de.fhg.iais.roberta.connection.arduino;
 
-import de.fhg.iais.roberta.connection.AbstractConnector;
-import de.fhg.iais.roberta.main.Robot;
-import de.fhg.iais.roberta.util.OraTokenGenerator;
-import de.fhg.iais.roberta.util.Pair;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -15,26 +10,24 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-public class ArduinoConnector extends AbstractConnector {
+import de.fhg.iais.roberta.connection.AbstractConnector;
+import de.fhg.iais.roberta.util.OraTokenGenerator;
+import de.fhg.iais.roberta.util.Pair;
+
+public class ArduinoConnector extends AbstractConnector<Arduino> {
     private static final Logger LOG = LoggerFactory.getLogger(ArduinoConnector.class);
 
     private ArduinoCommunicator arduinoCommunicator = null;
 
-    private final ArduinoType type;
-    private final String portName;
-
-    public ArduinoConnector(Arduino arduino) {
-        super(arduino.getName());
-
-        this.type = arduino.getType();
-        this.portName = arduino.getPort();
+    ArduinoConnector(Arduino arduino) {
+        super(arduino);
     }
 
     @Override
     protected void runLoopBody() {
         switch ( this.state ) {
             case DISCOVER:
-                this.arduinoCommunicator = new ArduinoCommunicator(this.brickName, this.type);
+                this.arduinoCommunicator = new ArduinoCommunicator(this.robot);
                 this.fire(State.WAIT_FOR_CONNECT_BUTTON_PRESS);
                 break;
             case CONNECT_BUTTON_IS_PRESSED:
@@ -90,7 +83,7 @@ public class ArduinoConnector extends AbstractConnector {
                             }
 
                             this.fire(State.WAIT_UPLOAD);
-                            this.arduinoCommunicator.uploadFile(this.portName, temp.getAbsolutePath());
+                            this.arduinoCommunicator.uploadFile(this.robot.getPort(), temp.getAbsolutePath());
                         } catch ( FileNotFoundException e ) {
                             LOG.info("File not found: {}", e.getMessage());
                             this.fire(State.WAIT_FOR_CMD);
@@ -121,11 +114,6 @@ public class ArduinoConnector extends AbstractConnector {
     }
 
     public String getPortName() {
-        return this.portName;
-    }
-
-    @Override
-    public Class<? extends Robot> getRobotClass() {
-        return Arduino.class;
+        return this.robot.getPort();
     }
 }

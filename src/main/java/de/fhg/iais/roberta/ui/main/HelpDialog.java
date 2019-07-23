@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
+import java.awt.Image;
 import java.awt.event.ActionListener;
 import java.util.Objects;
 import java.util.ResourceBundle;
@@ -20,8 +21,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
 import de.fhg.iais.roberta.ui.OraButton;
-
-import static de.fhg.iais.roberta.ui.main.MainView.IMAGES_PATH;
 
 class HelpDialog extends JDialog {
     static final String CMD_SELECT_EV3 = "select_ev3";
@@ -42,7 +41,7 @@ class HelpDialog extends JDialog {
 
     private final JButton butClose = new JButton();
 
-    private static final Icon TIMES = new ImageIcon(Objects.requireNonNull(MainView.class.getClassLoader().getResource(IMAGES_PATH + "times.png")));
+    private static final String FILENAME_TIMES = "times.png";
 
     HelpDialog(Frame frame, ResourceBundle messages, ActionListener listener) {
         super(frame);
@@ -61,7 +60,7 @@ class HelpDialog extends JDialog {
         this.lblGreet.setText(messages.getString("helpConnectionGreeting"));
 
         jPanel.add(this.butClose);
-        this.butClose.setIcon(TIMES);
+        this.butClose.setIcon(ImageHelper.getIcon(FILENAME_TIMES));
         this.butClose.setBorder(null);
         this.butClose.setBackground(Color.WHITE);
         this.butClose.setAlignmentY(Component.BOTTOM_ALIGNMENT);

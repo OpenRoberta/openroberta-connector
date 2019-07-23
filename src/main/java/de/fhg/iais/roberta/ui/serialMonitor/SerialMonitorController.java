@@ -1,21 +1,23 @@
 package de.fhg.iais.roberta.ui.serialMonitor;
 
-import de.fhg.iais.roberta.connection.IConnector;
-import de.fhg.iais.roberta.connection.IConnector.State;
-import de.fhg.iais.roberta.connection.SerialLoggingTask;
-import de.fhg.iais.roberta.connection.arduino.ArduinoConnector;
-import de.fhg.iais.roberta.ui.IController;
-import de.fhg.iais.roberta.util.IOraUiListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.SwingUtilities;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import javax.swing.SwingUtilities;
+
+import de.fhg.iais.roberta.connection.IConnector;
+import de.fhg.iais.roberta.connection.IConnector.State;
+import de.fhg.iais.roberta.connection.SerialLoggingTask;
+import de.fhg.iais.roberta.connection.arduino.ArduinoConnector;
+import de.fhg.iais.roberta.ui.IController;
+import de.fhg.iais.roberta.util.IOraUiListener;
 
 import static de.fhg.iais.roberta.ui.serialMonitor.SerialMonitorView.CMD_CLEAR;
 import static de.fhg.iais.roberta.ui.serialMonitor.SerialMonitorView.CMD_RESTART;
@@ -37,7 +39,7 @@ public class SerialMonitorController implements IController {
     }
 
     @Override
-    public void setConnector(IConnector connector) {
+    public void setConnector(IConnector<?> connector) {
         LOG.debug("setConnector: {}", connector.getClass().getSimpleName());
         connector.registerListener(this::setState);
         this.portName = ((ArduinoConnector) connector).getPortName();
@@ -110,7 +112,7 @@ public class SerialMonitorController implements IController {
         @Override
         public void windowClosing(WindowEvent e) {
             LOG.info("User closed serial window");
-            stopSerialLogging();
+            SerialMonitorController.this.stopSerialLogging();
         }
     }
 }

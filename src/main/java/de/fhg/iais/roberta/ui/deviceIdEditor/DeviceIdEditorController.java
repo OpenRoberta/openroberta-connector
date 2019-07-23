@@ -1,19 +1,8 @@
 package de.fhg.iais.roberta.ui.deviceIdEditor;
 
-import de.fhg.iais.roberta.connection.IConnector;
-import de.fhg.iais.roberta.connection.IConnector.State;
-import de.fhg.iais.roberta.connection.arduino.ArduinoDetector;
-import de.fhg.iais.roberta.connection.arduino.ArduinoType;
-import de.fhg.iais.roberta.ui.IController;
-import de.fhg.iais.roberta.ui.OraPopup;
-import de.fhg.iais.roberta.ui.OraTable.FixedTableModel;
-import de.fhg.iais.roberta.util.ArduinoIdFileHelper;
-import de.fhg.iais.roberta.util.IOraUiListener;
-import de.fhg.iais.roberta.util.SerialDevice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.JTable;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
@@ -25,6 +14,19 @@ import java.util.ResourceBundle;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import javax.swing.JTable;
+
+import de.fhg.iais.roberta.connection.IConnector;
+import de.fhg.iais.roberta.connection.IConnector.State;
+import de.fhg.iais.roberta.connection.arduino.ArduinoDetector;
+import de.fhg.iais.roberta.connection.arduino.ArduinoType;
+import de.fhg.iais.roberta.ui.IController;
+import de.fhg.iais.roberta.ui.OraPopup;
+import de.fhg.iais.roberta.ui.OraTable.FixedTableModel;
+import de.fhg.iais.roberta.util.ArduinoIdFileHelper;
+import de.fhg.iais.roberta.util.IOraUiListener;
+import de.fhg.iais.roberta.util.SerialDevice;
 
 import static de.fhg.iais.roberta.ui.deviceIdEditor.DeviceIdEditorView.CMD_ADD_ENTRY;
 import static de.fhg.iais.roberta.ui.deviceIdEditor.DeviceIdEditorView.CMD_CANCEL;
@@ -49,7 +51,7 @@ public class DeviceIdEditorController implements IController {
     }
 
     @Override
-    public void setConnector(IConnector connector) {
+    public void setConnector(IConnector<?> connector) {
         // does not need the connector
     }
 
@@ -119,17 +121,29 @@ public class DeviceIdEditorController implements IController {
 
             if ( result == -1 ) {
                 DeviceIdEditorController.this.deviceIdEditorView.getTblIds()
-                    .setRowSelectionInterval(DeviceIdEditorController.this.deviceIdEditorView.getTblIds().getRowCount() - 1,
-                        DeviceIdEditorController.this.deviceIdEditorView.getTblIds().getRowCount() - 1);
+                                                                .setRowSelectionInterval(DeviceIdEditorController.this.deviceIdEditorView.getTblIds()
+                                                                                                                                         .getRowCount() - 1,
+                                                                                         DeviceIdEditorController.this.deviceIdEditorView.getTblIds()
+                                                                                                                                         .getRowCount() - 1);
                 DeviceIdEditorController.this.deviceIdEditorView.getTblIds()
-                    .scrollRectToVisible(DeviceIdEditorController.this.deviceIdEditorView.getTblIds()
-                        .getCellRect(DeviceIdEditorController.this.deviceIdEditorView.getTblIds().getRowCount() - 1, 0, false));
+                                                                .scrollRectToVisible(DeviceIdEditorController.this.deviceIdEditorView.getTblIds()
+                                                                                                                                     .getCellRect(
+                                                                                                                                         DeviceIdEditorController.this.deviceIdEditorView
+                                                                                                                                             .getTblIds()
+                                                                                                                                             .getRowCount() - 1,
+                                                                                                                                         0,
+                                                                                                                                         false));
             } else {
                 DeviceIdEditorController.this.deviceIdEditorView.getTblIds().setRowSelectionInterval(result, result);
                 DeviceIdEditorController.this.deviceIdEditorView.getTblIds()
-                    .scrollRectToVisible(new Rectangle(DeviceIdEditorController.this.deviceIdEditorView.getTblIds().getCellRect(result, 0, true)));
+                                                                .scrollRectToVisible(new Rectangle(DeviceIdEditorController.this.deviceIdEditorView.getTblIds()
+                                                                                                                                                   .getCellRect(
+                                                                                                                                                       result,
+                                                                                                                                                       0,
+                                                                                                                                                       true)));
 
-                OraPopup.showPopup(DeviceIdEditorController.this.deviceIdEditorView, "attention", "alreadyExists", messages, null, new String[]{"yes"});
+                OraPopup.showPopup(DeviceIdEditorController.this.deviceIdEditorView, "attention", "alreadyExists",
+                                   DeviceIdEditorController.this.messages, null, new String[] { "yes" });
             }
         }
 
@@ -139,7 +153,8 @@ public class DeviceIdEditorController implements IController {
 
             int decision = OraPopup.showPopup(DeviceIdEditorController.this.deviceIdEditorView,
                                               "attention",
-                                              "confirmDeletion", DeviceIdEditorController.this.messages,
+                                              "confirmDeletion",
+                                              DeviceIdEditorController.this.messages,
                                               null,
                                               new String[] { "yes", "no" });
             if ( decision == 0 ) { // clicked yes
@@ -174,12 +189,18 @@ public class DeviceIdEditorController implements IController {
             } else {
                 DeviceIdEditorController.this.deviceIdEditorView.getTblIds().setRowSelectionInterval(noneRowIndex, noneRowIndex);
                 DeviceIdEditorController.this.deviceIdEditorView.getTblIds()
-                    .scrollRectToVisible(new Rectangle(DeviceIdEditorController.this.deviceIdEditorView.getTblIds().getCellRect(noneRowIndex, 0, true)));
+                                                                .scrollRectToVisible(new Rectangle(DeviceIdEditorController.this.deviceIdEditorView.getTblIds()
+                                                                                                                                                   .getCellRect(
+                                                                                                                                                       noneRowIndex,
+                                                                                                                                                       0,
+                                                                                                                                                       true)));
 
                 OraPopup.showPopup(DeviceIdEditorController.this.deviceIdEditorView,
                                    "attention",
-                                   "noneTypeRemaining", DeviceIdEditorController.this.messages,
-                                   null, new String[]{"ok"});
+                                   "noneTypeRemaining",
+                                   DeviceIdEditorController.this.messages,
+                                   null,
+                                   new String[] { "ok" });
             }
         }
     }
