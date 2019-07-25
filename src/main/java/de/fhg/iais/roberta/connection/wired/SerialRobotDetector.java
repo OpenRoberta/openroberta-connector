@@ -1,4 +1,4 @@
-package de.fhg.iais.roberta.connection.arduino;
+package de.fhg.iais.roberta.connection.wired;
 
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang3.SystemUtils;
@@ -23,19 +23,21 @@ import java.util.stream.Stream;
 
 import de.fhg.iais.roberta.connection.IDetector;
 import de.fhg.iais.roberta.connection.IRobot;
+import de.fhg.iais.roberta.connection.wired.arduino.Arduino;
+import de.fhg.iais.roberta.connection.wired.microbit.Microbit;
 import de.fhg.iais.roberta.util.Pair;
 import de.fhg.iais.roberta.util.SerialDevice;
 
-import static de.fhg.iais.roberta.util.ArduinoIdFileHelper.load;
+import static de.fhg.iais.roberta.util.WiredRobotIdFileHelper.load;
 
-public class ArduinoDetector implements IDetector {
-    private static final Logger LOG = LoggerFactory.getLogger(ArduinoDetector.class);
+public class SerialRobotDetector implements IDetector {
+    private static final Logger LOG = LoggerFactory.getLogger(SerialRobotDetector.class);
 
-    private Map<SerialDevice, ArduinoType> supportedRobots;
+    private Map<SerialDevice, WiredRobotType> supportedRobots;
     private Map<Integer, String> readIdFileErrors;
 
-    public ArduinoDetector() {
-        Pair<Map<SerialDevice, ArduinoType>, Map<Integer, String>> loadIdsResult = load();
+    public SerialRobotDetector() {
+        Pair<Map<SerialDevice, WiredRobotType>, Map<Integer, String>> loadIdsResult = load();
         this.supportedRobots = loadIdsResult.getFirst();
         this.readIdFileErrors = loadIdsResult.getSecond();
     }
@@ -46,19 +48,25 @@ public class ArduinoDetector implements IDetector {
 
     @Override
     public List<IRobot> detectRobots() {
-        List<IRobot> detectedRobots = new ArrayList<>();
+        List<IRobot> detectedRobots = new ArrayList<>(20);
 
-        Pair<Map<SerialDevice, ArduinoType>, Map<Integer, String>> loadIdsResult = load();
+        Pair<Map<SerialDevice, WiredRobotType>, Map<Integer, String>> loadIdsResult = load();
         this.supportedRobots = loadIdsResult.getFirst();
         this.readIdFileErrors = loadIdsResult.getSecond();
 
         List<SerialDevice> devices = getUsbDevices();
 
         for ( SerialDevice device : devices ) {
-            ArduinoType arduinoType = this.supportedRobots.get(device);
+            WiredRobotType wiredRobotType = this.supportedRobots.get(device);
 
-            if ( arduinoType != null ) {
-                detectedRobots.add(new Arduino(arduinoType, device.port));
+            if ( wiredRobotType != null ) {
+                if ( wiredRobotType == WiredRobotType.NONE ) {
+                    throw new IllegalStateException("Robot type can not be NONE!");
+                } else if ( wiredRobotType == WiredRobotType.MICROBIT ) {
+                    detectedRobots.add(new Microbit(device.port));
+                } else {
+                    detectedRobots.add(new Arduino(wiredRobotType, device.port));
+                }
             }
         }
         return detectedRobots;
@@ -72,14 +80,14 @@ public class ArduinoDetector implements IDetector {
             LOG.debug("Windows detected");
             return getUsbDevicesWindows();
         } else if ( SystemUtils.IS_OS_MAC_OSX ) {
-            LOG.debug("MacOS detected");
+            LOG.debug("OSX detected");
             return getUsbDevicesMacOSX();
         }
         throw new UnsupportedOperationException("Operating system not supported!");
     }
 
     private static List<SerialDevice> getUsbDevicesLinux() {
-        List<SerialDevice> devices = new ArrayList<>();
+        List<SerialDevice> devices = new ArrayList<>(5);
         File devicesDir = new File("/sys/bus/usb/devices");
 
         // check every usb device
@@ -91,8 +99,8 @@ public class ArduinoDetector implements IDetector {
             if ( idVendorFile.exists() && idProductFile.exists() ) {
                 try (Stream<String> vendorLines = Files.lines(idVendorFile.toPath()); Stream<String> productLines = Files.lines(idProductFile.toPath())) {
 
-                    String idVendor = vendorLines.findFirst().get();
-                    String idProduct = productLines.findFirst().get();
+                    String idVendor = vendorLines.findFirst().orElseThrow(() -> new IllegalStateException("Vendor id could not be read"));
+                    String idProduct = productLines.findFirst().orElseThrow(() -> new IllegalStateException("Product id could not be read"));
 
                     // recover the tty portname of the device
                     // it can be found in the subdirectory with the same name as the device
@@ -103,9 +111,9 @@ public class ArduinoDetector implements IDetector {
 
                             // look for a directory containing tty, in case its only called tty look into it to find the real name
                             subSubDirs.stream()
-                                      .filter(s -> s.getName().contains("tty"))
+                                      .filter(file -> file.getName().contains("tty"))
                                       .findFirst()
-                                      .ifPresent(f -> port[0] = f.getName().equals("tty") ? f.list()[0] : f.getName());
+                                      .ifPresent(file -> port[0] = file.getName().equals("tty") ? file.list()[0] : file.getName());
                         }
                     }
 
@@ -122,7 +130,7 @@ public class ArduinoDetector implements IDetector {
     }
 
     private static List<SerialDevice> getUsbDevicesWindows() {
-        List<SerialDevice> devices = new ArrayList<>();
+        List<SerialDevice> devices = new ArrayList<>(5);
 
         ProcessBuilder
             processBuilder =
@@ -157,7 +165,7 @@ public class ArduinoDetector implements IDetector {
     }
 
     private static List<SerialDevice> getUsbDevicesMacOSX() {
-        List<SerialDevice> devices = new ArrayList<>();
+        List<SerialDevice> devices = new ArrayList<>(5);
         try {
             Runtime rt = Runtime.getRuntime();
             String[] commands = {

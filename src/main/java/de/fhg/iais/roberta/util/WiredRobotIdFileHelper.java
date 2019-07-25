@@ -1,6 +1,5 @@
 package de.fhg.iais.roberta.util;
 
-import de.fhg.iais.roberta.connection.arduino.ArduinoType;
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,28 +18,35 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
-public class ArduinoIdFileHelper {
-    private static final Logger LOG = LoggerFactory.getLogger(ArduinoIdFileHelper.class);
+import de.fhg.iais.roberta.connection.wired.WiredRobotType;
 
-    private static final String ARDUINO_ID_FILENAME = "arduino-ids.txt";
-    private static final String ARDUINO_ID_FILEPATH =
-            SystemUtils.getUserHome().getPath() + File.separator + "OpenRobertaConnector" + File.separator + ARDUINO_ID_FILENAME;
+public final class WiredRobotIdFileHelper {
+    private static final Logger LOG = LoggerFactory.getLogger(WiredRobotIdFileHelper.class);
 
-    public static Pair<Map<SerialDevice, ArduinoType>, Map<Integer, String>> load() {
-        Map<SerialDevice, ArduinoType> supportedRobots = new HashMap<>();
-        Map<Integer, String> readIdFileErrors = new HashMap<>();
+    private static final String WIRED_ROBOT_ID_FILENAME = "wired-robot-ids.txt";
+    private static final String
+        WIRED_ROBOT_ID_FILEPATH =
+        SystemUtils.getUserHome().getPath() + File.separator + "OpenRobertaConnector" + File.separator + WIRED_ROBOT_ID_FILENAME;
 
-        File file = new File(ARDUINO_ID_FILEPATH);
+    private WiredRobotIdFileHelper() {
+    }
+
+    public static Pair<Map<SerialDevice, WiredRobotType>, Map<Integer, String>> load() {
+        Map<SerialDevice, WiredRobotType> supportedRobots = new HashMap<>(20);
+        Map<Integer, String> readIdFileErrors = new HashMap<>(20);
+
+        File file = new File(WIRED_ROBOT_ID_FILEPATH);
 
         if ( !file.exists() ) {
-            LOG.warn("Could not find {}, using default file!", ARDUINO_ID_FILEPATH);
+            LOG.warn("Could not find {}, using default file!", WIRED_ROBOT_ID_FILEPATH);
         }
 
         try (InputStream inputStream = (file.exists()) ?
-            new FileInputStream(file) :
-            ArduinoIdFileHelper.class.getClassLoader().getResourceAsStream(ARDUINO_ID_FILENAME);
-            BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+                                       new FileInputStream(file) :
+                                       WiredRobotIdFileHelper.class.getClassLoader().getResourceAsStream(WIRED_ROBOT_ID_FILENAME);
+             BufferedReader br = new BufferedReader(new InputStreamReader(Objects.requireNonNull(inputStream), StandardCharsets.UTF_8))) {
             String line;
             int lineNr = 1;
             while ( (line = br.readLine()) != null ) {
@@ -49,7 +55,7 @@ public class ArduinoIdFileHelper {
 
                     String error = checkIdEntryFormat(values);
                     if ( error.isEmpty() ) {
-                        supportedRobots.put(new SerialDevice(values.get(0), values.get(1), "", ""), ArduinoType.fromString(values.get(2)));
+                        supportedRobots.put(new SerialDevice(values.get(0), values.get(1), "", ""), WiredRobotType.fromString(values.get(2)));
                     } else {
                         readIdFileErrors.put(lineNr, error);
                     }
@@ -57,29 +63,30 @@ public class ArduinoIdFileHelper {
                 lineNr++;
             }
         } catch ( FileNotFoundException e ) {
-            LOG.error("Could not find file {}: {}", ARDUINO_ID_FILENAME, e.getMessage());
+            LOG.error("Could not find file {}: {}", WIRED_ROBOT_ID_FILENAME, e.getMessage());
         } catch ( IOException e ) {
-            LOG.error("Something went wrong while loading the {} file: {}", ARDUINO_ID_FILENAME, e.getMessage());
+            LOG.error("Something went wrong while loading the {} file: {}", WIRED_ROBOT_ID_FILENAME, e.getMessage());
             readIdFileErrors.put(0, e.getMessage());
         }
 
         return new Pair<>(supportedRobots, readIdFileErrors);
     }
 
-    public static void save(Iterable<List<String>> entries) {
-        File file = new File(ARDUINO_ID_FILEPATH);
+    public static void save(Iterable<? extends List<String>> entries) {
+        File file = new File(WIRED_ROBOT_ID_FILEPATH);
 
-        Map<Integer, String> readIdFileErrors = new HashMap<>();
+        Map<Integer, String> readIdFileErrors = new HashMap<>(20);
 
         int lineNr = 0;
         for ( List<String> entry : entries ) {
             String error = checkIdEntryFormat(entry);
             if ( !error.isEmpty() ) {
-                readIdFileErrors.put(lineNr++, error);
+                readIdFileErrors.put(lineNr, error);
+                lineNr++;
             }
         }
 
-        if (!readIdFileErrors.isEmpty()) {
+        if ( !readIdFileErrors.isEmpty() ) {
             return;
         }
 
@@ -88,9 +95,9 @@ public class ArduinoIdFileHelper {
                 writer.write(entry.get(0) + ',' + entry.get(1) + ',' + entry.get(2) + System.lineSeparator());
             }
         } catch ( FileNotFoundException e ) {
-            LOG.error("Could not find file {}: {}", ARDUINO_ID_FILENAME, e.getMessage());
+            LOG.error("Could not find file {}: {}", WIRED_ROBOT_ID_FILENAME, e.getMessage());
         } catch ( IOException e ) {
-            LOG.error("Something went wrong while writing the {} file: {}", ARDUINO_ID_FILENAME, e.getMessage());
+            LOG.error("Something went wrong while writing the {} file: {}", WIRED_ROBOT_ID_FILENAME, e.getMessage());
         }
     }
 
@@ -107,7 +114,7 @@ public class ArduinoIdFileHelper {
                 return "errorConfigProductId";
             }
             try {
-                ArduinoType.fromString(values.get(2));
+                WiredRobotType.fromString(values.get(2));
             } catch ( IllegalArgumentException e ) {
                 return "errorConfigArduinoType";
             }

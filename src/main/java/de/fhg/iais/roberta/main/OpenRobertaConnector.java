@@ -6,30 +6,34 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
-import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
 
 import de.fhg.iais.roberta.connection.IConnector;
+import de.fhg.iais.roberta.connection.IDetector;
 import de.fhg.iais.roberta.connection.IRobot;
-import de.fhg.iais.roberta.connection.arduino.ArduinoDetector;
-import de.fhg.iais.roberta.connection.ev3.Ev3Detector;
-import de.fhg.iais.roberta.connection.nao.NaoDetector;
+import de.fhg.iais.roberta.connection.wired.RndisDetector;
+import de.fhg.iais.roberta.connection.wired.SerialRobotDetector;
+import de.fhg.iais.roberta.connection.wireless.mDnsDetector;
 import de.fhg.iais.roberta.ui.main.MainController;
 import de.fhg.iais.roberta.util.PropertyHelper;
 
 class OpenRobertaConnector {
+    public static void main(String args[]) {
+        new OpenRobertaConnector().run();
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(OpenRobertaConnector.class);
 
     private static final long TIMEOUT = 1000L;
-    private static final long HELP_THRESHOLD = 20000L;
+    private static final long HELP_THRESHOLD = Long.parseLong(PropertyHelper.getInstance().getProperty("timeToHelp")) * 1000L;
 
     private final MainController controller;
 
-    private final Ev3Detector ev3Detector = new Ev3Detector();
-    private final ArduinoDetector arduinoDetector = new ArduinoDetector();
-    private final NaoDetector naoDetector = new NaoDetector();
-    private final RobotDetectorHelper robotDetectorHelper = new RobotDetectorHelper(Arrays.asList(this.arduinoDetector, this.ev3Detector, this.naoDetector));
+    private final IDetector wiredRobotDetector = new SerialRobotDetector();
+    private final IDetector rndisDetector = new RndisDetector();
+    private final IDetector naoDetector = new mDnsDetector();
+    private final RobotDetectorHelper robotDetectorHelper = new RobotDetectorHelper(Arrays.asList(this.wiredRobotDetector, this.rndisDetector, this.naoDetector));
 
     OpenRobertaConnector() {
         ResourceBundle messages = ResourceBundle.getBundle(PropertyHelper.getInstance().getProperty("messagesBundle"), Locale.getDefault());
@@ -44,14 +48,9 @@ class OpenRobertaConnector {
         long helpTimer = 0L;
         boolean showHelp = true;
 
-        Map<Integer, String> errors = this.arduinoDetector.getReadIdFileErrors();
-        if ( !errors.isEmpty() ) {
-            this.controller.showConfigErrorPopup(errors);
-        }
-
         // Main loop, repeats until the program is closed
         while ( !Thread.currentThread().isInterrupted() ) {
-            Set<IRobot> robots = new HashSet<>();
+            Set<IRobot> robots = new HashSet<>(5);
             IRobot selectedRobot = null;
             this.robotDetectorHelper.reset();
 

@@ -1,6 +1,5 @@
-package de.fhg.iais.roberta.connection.ev3;
+package de.fhg.iais.roberta.connection.wired.ev3;
 
-import de.fhg.iais.roberta.connection.IConnector;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -14,6 +13,8 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 
 import java.io.IOException;
+
+import de.fhg.iais.roberta.connection.IConnector;
 
 /**
  * The EV3 is running an http server. We initialise the connection to the robot by the connector, because of possible firewall issues.
@@ -73,7 +74,7 @@ class Ev3Communicator {
      */
     JSONObject uploadProgram(byte[] binaryFile, String filename) throws IOException {
         HttpPost post = new HttpPost("http://" + this.brickProgram);
-        return uploadBinary(post, binaryFile, filename);
+        return this.uploadBinary(post, binaryFile, filename);
     }
 
     /**
@@ -86,7 +87,7 @@ class Ev3Communicator {
      */
     JSONObject uploadFirmwareFile(byte[] binaryFile, String filename) throws IOException {
         HttpPost post = new HttpPost("http://" + this.brickFirmware);
-        return uploadBinary(post, binaryFile, filename);
+        return this.uploadBinary(post, binaryFile, filename);
     }
 
     private JSONObject uploadBinary(HttpPost post, byte[] binaryFile, String filename) throws IOException {
@@ -106,7 +107,7 @@ class Ev3Communicator {
      * @throws IOException should only occur if you disconnect the cable
      */
     void restartBrick() throws IOException {
-        pushToBrick("update");
+        this.pushToBrick("update");
     }
 
     /**
@@ -127,12 +128,6 @@ class Ev3Communicator {
      * @throws IOException should only occur if you disconnect the cable
      */
     boolean isRunning() throws IOException {
-        return pushToBrick(IConnector.CMD_ISRUNNING).getString("isrunning").equals("true");
-    }
-
-    String getName() throws IOException {
-        JSONObject json = pushToBrick("register");
-
-        return json.getString("brickname");
+        return this.pushToBrick(IConnector.CMD_ISRUNNING).getString("isrunning").equals("true");
     }
 }

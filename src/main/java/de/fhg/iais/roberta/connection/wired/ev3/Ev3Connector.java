@@ -1,4 +1,4 @@
-package de.fhg.iais.roberta.connection.ev3;
+package de.fhg.iais.roberta.connection.wired.ev3;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -89,8 +89,8 @@ public class Ev3Connector extends AbstractConnector<Ev3> {
                     this.brickData = this.ev3comm.pushToBrick(CMD_REGISTER);
                     this.brickData.put(KEY_TOKEN, this.token);
                     this.brickData.put(KEY_CMD, CMD_REGISTER);
-                } catch ( IOException brickerror ) {
-                    LOG.info("{} {}", State.CONNECT_BUTTON_IS_PRESSED, brickerror.getMessage());
+                } catch ( IOException e ) {
+                    LOG.info("{} {}", State.CONNECT_BUTTON_IS_PRESSED, e.getMessage());
                     this.reset(State.ERROR_BRICK);
                     break;
                 }
@@ -101,8 +101,8 @@ public class Ev3Connector extends AbstractConnector<Ev3> {
 
                         try {
                             this.brickData = this.ev3comm.pushToBrick(CMD_REPEAT);
-                        } catch ( IOException brickerror ) {
-                            LOG.info("{} {}", State.CONNECT_BUTTON_IS_PRESSED, brickerror.getMessage());
+                        } catch ( IOException e ) {
+                            LOG.info("{} {}", State.CONNECT_BUTTON_IS_PRESSED, e.getMessage());
                             this.reset(State.ERROR_BRICK);
                             break;
                         }
@@ -123,8 +123,8 @@ public class Ev3Connector extends AbstractConnector<Ev3> {
                     this.brickData = this.ev3comm.pushToBrick(CMD_REPEAT);
                     this.brickData.put(KEY_TOKEN, this.token);
                     this.brickData.put(KEY_CMD, CMD_PUSH);
-                } catch ( IOException brickerror ) {
-                    LOG.info("{} {}", State.WAIT_FOR_CMD, brickerror.getMessage());
+                } catch ( IOException e ) {
+                    LOG.info("{} {}", State.WAIT_FOR_CMD, e.getMessage());
                     this.reset(State.ERROR_BRICK);
                     break;
                 }
@@ -172,7 +172,7 @@ public class Ev3Connector extends AbstractConnector<Ev3> {
                         } catch ( IOException e ) {
                             // do not give up the brick, try another push request
                             // user has to click on run button again
-                            LOG.info("{} Downlaod file failed {}", State.WAIT_FOR_CMD, e.getMessage());
+                            LOG.info("{} Download file failed {}", State.WAIT_FOR_CMD, e.getMessage());
                             this.fire(State.WAIT_FOR_CMD);
                         }
                         break;

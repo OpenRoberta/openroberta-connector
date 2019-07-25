@@ -15,7 +15,7 @@ import javax.swing.SwingUtilities;
 import de.fhg.iais.roberta.connection.IConnector;
 import de.fhg.iais.roberta.connection.IConnector.State;
 import de.fhg.iais.roberta.connection.SerialLoggingTask;
-import de.fhg.iais.roberta.connection.arduino.ArduinoConnector;
+import de.fhg.iais.roberta.connection.wired.IWiredRobot;
 import de.fhg.iais.roberta.ui.IController;
 import de.fhg.iais.roberta.util.IOraUiListener;
 
@@ -42,7 +42,7 @@ public class SerialMonitorController implements IController {
     public void setConnector(IConnector<?> connector) {
         LOG.debug("setConnector: {}", connector.getClass().getSimpleName());
         connector.registerListener(this::setState);
-        this.portName = ((ArduinoConnector) connector).getPortName();
+        this.portName = ((IWiredRobot) connector.getRobot()).getPort();
     }
 
     @Override

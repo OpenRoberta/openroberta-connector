@@ -1,4 +1,4 @@
-package de.fhg.iais.roberta.connection.arduino;
+package de.fhg.iais.roberta.connection.wired.arduino;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,6 +14,9 @@ import de.fhg.iais.roberta.connection.AbstractConnector;
 import de.fhg.iais.roberta.util.OraTokenGenerator;
 import de.fhg.iais.roberta.util.Pair;
 
+/**
+ * Connector class for Arduino robots. Handles state and communication between robot, connector and server.
+ */
 public class ArduinoConnector extends AbstractConnector<Arduino> {
     private static final Logger LOG = LoggerFactory.getLogger(ArduinoConnector.class);
 
@@ -111,9 +114,5 @@ public class ArduinoConnector extends AbstractConnector<Arduino> {
             default:
                 break;
         }
-    }
-
-    public String getPortName() {
-        return this.robot.getPort();
     }
 }

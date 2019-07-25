@@ -1,25 +1,22 @@
-package de.fhg.iais.roberta.connection.nao;
+package de.fhg.iais.roberta.connection.wireless;
 
 import java.net.InetAddress;
 import java.util.Objects;
 
-import de.fhg.iais.roberta.connection.IConnector;
-import de.fhg.iais.roberta.connection.IRobot;
-
 /**
- * Implementation of the NAO robot.
+ * Abstract class for a wireless robot.
  */
-public class Nao implements IRobot {
+public abstract class AbstractWirelessRobot implements IWirelessRobot {
     private final String name;
     private final InetAddress address;
 
     /**
-     * Constructor for the NAO robot.
+     * Constructor for wireless robots.
      *
      * @param name    the robot name
      * @param address the robot address
      */
-    public Nao(String name, InetAddress address) {
+    protected AbstractWirelessRobot(String name, InetAddress address) {
         this.name = name;
         this.address = address;
     }
@@ -30,20 +27,6 @@ public class Nao implements IRobot {
     }
 
     @Override
-    public ConnectionType getConnectionType() {
-        return ConnectionType.WIRELESS;
-    }
-
-    @Override
-    public IConnector<? extends IRobot> createConnector() {
-        return new NaoConnector(this);
-    }
-
-    /**
-     * Returns the internet address of the NAO.
-     *
-     * @return the internet address of the NAO
-     */
     public InetAddress getAddress() {
         return this.address;
     }
@@ -56,8 +39,8 @@ public class Nao implements IRobot {
         if ( (obj == null) || (this.getClass() != obj.getClass()) ) {
             return false;
         }
-        Nao nao = (Nao) obj;
-        return Objects.equals(this.name, nao.name) && Objects.equals(this.address, nao.address);
+        IWirelessRobot robot = (IWirelessRobot) obj;
+        return Objects.equals(this.name, robot.getName()) && Objects.equals(this.address, robot.getAddress());
     }
 
     @Override

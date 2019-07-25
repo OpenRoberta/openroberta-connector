@@ -1,4 +1,4 @@
-package de.fhg.iais.roberta.connection.arduino;
+package de.fhg.iais.roberta.connection.wired.arduino;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.json.JSONObject;
@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 
+import de.fhg.iais.roberta.connection.wired.IWiredRobot;
 import de.fhg.iais.roberta.util.PropertyHelper;
 
 class ArduinoCommunicator {
@@ -15,10 +16,10 @@ class ArduinoCommunicator {
 
     private String avrPath = ""; //path for avrdude bin
     private String avrConfPath = ""; //path for the .conf file
-    private final Arduino arduino;
+    private final IWiredRobot robot;
 
-    ArduinoCommunicator(Arduino arduino) {
-        this.arduino = arduino;
+    ArduinoCommunicator(IWiredRobot robot) {
+        this.robot = robot;
     }
 
     private void setParameters() {
@@ -43,9 +44,9 @@ class ArduinoCommunicator {
     JSONObject getDeviceInfo() {
         JSONObject deviceInfo = new JSONObject();
 
-        deviceInfo.put("firmwarename", this.arduino.getType().toString());
-        deviceInfo.put("robot", this.arduino.getType().toString());
-        deviceInfo.put("brickname", this.arduino.getName());
+        deviceInfo.put("firmwarename", this.robot.getType().toString());
+        deviceInfo.put("robot", this.robot.getType().toString());
+        deviceInfo.put("brickname", this.robot.getName());
 
         return deviceInfo;
     }
@@ -60,7 +61,7 @@ class ArduinoCommunicator {
             String pArg;
             String cArg;
             String eArg = "";
-            switch ( this.arduino.getType() ) {
+            switch ( this.robot.getType() ) {
                 // specify if different
                 case MEGA:
                     pArg = "-patmega2560";

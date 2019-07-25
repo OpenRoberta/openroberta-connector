@@ -1,4 +1,4 @@
-package de.fhg.iais.roberta.connection.nao;
+package de.fhg.iais.roberta.connection.wireless.nao;
 
 import net.schmizz.sshj.connection.ConnectionException;
 import net.schmizz.sshj.transport.TransportException;
@@ -59,7 +59,7 @@ public class NaoCommunicator {
      * @throws IOException if something with the ssh connection or file transfer went wrong
      */
     public void uploadFile(byte[] binaryFile, String fileName) throws UserAuthException, IOException {
-        Collection<String> fileNames = new ArrayList<>();
+        Collection<String> fileNames = new ArrayList<>(5);
         fileNames.add("__init__.py");
         fileNames.add("blockly_methods.py");
         fileNames.add("original_hal.py");
@@ -73,8 +73,8 @@ public class NaoCommunicator {
                 ssh.copyLocalToRemote(this.workingDirectory + "/roberta", "roberta", fname);
             }
             ssh.copyLocalToRemote(binaryFile, ".", fileName);
-            String run_command = this.firmwareVersion.equals("2-8") ? "eval \"export $(xargs < /etc/conf.d/naoqi)\"; python " : "python ";
-            ssh.command(run_command + fileName);
+            String runCommand = this.firmwareVersion.equals("2-8") ? "eval \"export $(xargs < /etc/conf.d/naoqi)\"; python " : "python ";
+            ssh.command(runCommand + fileName);
         } catch ( FileNotFoundException | TransportException | ConnectionException e ) {
             throw new IOException(e);
         }

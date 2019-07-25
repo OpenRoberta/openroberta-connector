@@ -1,9 +1,10 @@
-package de.fhg.iais.roberta.connection.nao;
+package de.fhg.iais.roberta.connection.wireless;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -11,8 +12,11 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -24,23 +28,24 @@ import javax.jmdns.ServiceInfo;
 
 import de.fhg.iais.roberta.connection.IDetector;
 import de.fhg.iais.roberta.connection.IRobot;
+import de.fhg.iais.roberta.connection.wireless.nao.Nao;
 
 /**
- * Detector class for NAO robots. Searches for NAOs in all network connections.
+ * Detector class for mDNS robots. Searches for mDNS in all network connections.
  */
-public class NaoDetector implements IDetector {
-    private static final Logger LOG = LoggerFactory.getLogger(NaoDetector.class);
+public class mDnsDetector implements IDetector {
+    private static final Logger LOG = LoggerFactory.getLogger(mDnsDetector.class);
 
-    private static final String NAO_SERVICE_TYPE = "_naoqi._tcp.local.";
-    private static final long TIMEOUT = 1000L;
-
-    public NaoDetector() {
-
+    private static final Map<String, Class<? extends AbstractWirelessRobot>> SERVICE_TYPES = new HashMap<>(1);
+    static {
+        SERVICE_TYPES.put("_naoqi._tcp.local.", Nao.class);
     }
+
+    private static final long TIMEOUT = 1000L;
 
     @Override
     public List<IRobot> detectRobots() {
-        Collection<IRobot> detectedRobots = new HashSet<>();
+        Collection<IRobot> detectedRobots = new HashSet<>(5);
 
         try {
             Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
@@ -57,7 +62,7 @@ public class NaoDetector implements IDetector {
                     InetAddress address = addresses.nextElement();
                     LOG.info("Looking in {} {}", currentNif.getName(), address);
 
-                    IRobot robot = detectNaoOnAddress(address, currentNif);
+                    IRobot robot = detectRobotsOnAddress(address, currentNif);
                     if ( robot != null ) {
                         detectedRobots.add(robot);
                     }
@@ -89,7 +94,7 @@ public class NaoDetector implements IDetector {
     }
 
     /**
-     * Uses JmDNS to find NAOs on the address and network interface.
+     * Uses JmDNS to find mDNS robots on the address and network interface.
      *
      * @param address the network address where JmDNS should look for the robot
      * @param nif     the network interface the address is associated to
@@ -97,26 +102,30 @@ public class NaoDetector implements IDetector {
      * @throws IOException          if something went wrong with the JmDNS creation
      * @throws UnknownHostException if the network interface could not be added to the found address
      */
-    private static IRobot detectNaoOnAddress(InetAddress address, NetworkInterface nif) throws IOException, UnknownHostException {
+    private static AbstractWirelessRobot detectRobotsOnAddress(InetAddress address, NetworkInterface nif) throws IOException, UnknownHostException {
         try (JmDNS jmDNS = JmDNS.create(address, address.getHostName())) {
-            ServiceInfo[] list = jmDNS.list(NAO_SERVICE_TYPE, TIMEOUT);
+            for ( Entry<String, Class<? extends AbstractWirelessRobot>> entry : SERVICE_TYPES.entrySet() ) {
+                ServiceInfo[] list = jmDNS.list(entry.getKey(), TIMEOUT);
 
-            for ( ServiceInfo info : list ) {
-                InetAddress[] naoAddresses = info.getInetAddresses();
+                for ( ServiceInfo info : list ) {
+                    InetAddress[] adresses = info.getInetAddresses();
 
-                if ( naoAddresses.length > 0 ) {
-                    InetAddress naoAddress = naoAddresses[0];
-                    String name = info.getName();
+                    if ( adresses.length > 0 ) {
+                        InetAddress robotAddress = adresses[0];
+                        String name = info.getName();
 
-                    // Add network interface to the IPv6 address, as JmDNS omits that information
-                    if ( naoAddress instanceof Inet6Address ) {
-                        naoAddress = Inet6Address.getByAddress(naoAddress.getHostName(), naoAddress.getAddress(), nif);
+                        // Add network interface to the IPv6 address, as JmDNS omits that information
+                        if ( robotAddress instanceof Inet6Address ) {
+                            robotAddress = Inet6Address.getByAddress(robotAddress.getHostName(), robotAddress.getAddress(), nif);
+                        }
+
+                        LOG.info("Found mDNS robot {} with IP Address: {}", name, robotAddress);
+                        return entry.getValue().getConstructor(String.class, InetAddress.class).newInstance(name, robotAddress);
                     }
-
-                    LOG.info("Found NAO {} with IP Address: {}", name, naoAddress);
-                    return new Nao(name, naoAddress);
                 }
             }
+        } catch ( NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException e ) {
+            LOG.error("Robot class not implemented: {}", e.getMessage());
         }
         return null;
     }

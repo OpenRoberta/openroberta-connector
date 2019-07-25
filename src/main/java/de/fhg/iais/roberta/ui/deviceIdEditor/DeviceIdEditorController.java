@@ -19,14 +19,14 @@ import javax.swing.JTable;
 
 import de.fhg.iais.roberta.connection.IConnector;
 import de.fhg.iais.roberta.connection.IConnector.State;
-import de.fhg.iais.roberta.connection.arduino.ArduinoDetector;
-import de.fhg.iais.roberta.connection.arduino.ArduinoType;
+import de.fhg.iais.roberta.connection.wired.SerialRobotDetector;
+import de.fhg.iais.roberta.connection.wired.WiredRobotType;
 import de.fhg.iais.roberta.ui.IController;
 import de.fhg.iais.roberta.ui.OraPopup;
 import de.fhg.iais.roberta.ui.OraTable.FixedTableModel;
-import de.fhg.iais.roberta.util.ArduinoIdFileHelper;
 import de.fhg.iais.roberta.util.IOraUiListener;
 import de.fhg.iais.roberta.util.SerialDevice;
+import de.fhg.iais.roberta.util.WiredRobotIdFileHelper;
 
 import static de.fhg.iais.roberta.ui.deviceIdEditor.DeviceIdEditorView.CMD_ADD_ENTRY;
 import static de.fhg.iais.roberta.ui.deviceIdEditor.DeviceIdEditorView.CMD_CANCEL;
@@ -61,10 +61,11 @@ public class DeviceIdEditorController implements IController {
     }
 
     static List<List<Object>> getDevicesTableData() {
-        List<List<Object>> data = new ArrayList<>();
+        List<List<Object>> data = new ArrayList<>(20);
         int number = 1;
-        for ( SerialDevice usbDevice : ArduinoDetector.getUsbDevices() ) {
-            data.add(createDeviceEntry(number++, usbDevice.vendorId, usbDevice.productId, usbDevice.port));
+        for ( SerialDevice usbDevice : SerialRobotDetector.getUsbDevices() ) {
+            data.add(createDeviceEntry(number, usbDevice.vendorId, usbDevice.productId, usbDevice.port));
+            number++;
         }
         return data;
     }
@@ -76,12 +77,13 @@ public class DeviceIdEditorController implements IController {
         this.executorService.scheduleAtFixedRate(() -> {
             List<List<Object>> devicesTableData = getDevicesTableData();
             this.deviceIdEditorView.getTblDevices().updateTable(devicesTableData, Arrays.asList(2, 3));
-        }, 0, 1, TimeUnit.SECONDS);
+        }, 0L, 1L, TimeUnit.SECONDS);
 
         this.deviceIdEditorView.setVisible(true);
     }
 
     private class DeviceIdEditorViewListener implements IOraUiListener {
+
         @Override
         public void actionPerformed(ActionEvent e) {
             LOG.info("actionPerformed: {}", e.getActionCommand());
@@ -97,7 +99,7 @@ public class DeviceIdEditorController implements IController {
                     this.saveAndClose();
                     break;
                 case CMD_CANCEL:
-                    DeviceIdEditorController.this.close();
+                    this.close();
                     break;
                 default:
                     throw new UnsupportedOperationException("Action " + e.getActionCommand() + " is not implemented!");
@@ -106,16 +108,16 @@ public class DeviceIdEditorController implements IController {
 
         @Override
         public void windowClosing(WindowEvent e) {
-            DeviceIdEditorController.this.close();
+            this.close();
         }
 
         private void addEntry(ActionEvent e) {
             JTable table = (JTable) e.getSource();
-            int modelRow = Integer.valueOf(e.getActionCommand().split(CMD_DELIMITER)[1]);
+            int modelRow = Integer.parseInt(e.getActionCommand().split(CMD_DELIMITER)[1]);
 
             List<Object>
                 rowData =
-                createIdEntry((String) table.getModel().getValueAt(modelRow, 1), (String) table.getModel().getValueAt(modelRow, 2), ArduinoType.NONE);
+                createIdEntry((String) table.getModel().getValueAt(modelRow, 1), (String) table.getModel().getValueAt(modelRow, 2), WiredRobotType.NONE);
 
             int result = DeviceIdEditorController.this.deviceIdEditorView.getTblIds().addRow(rowData, Arrays.asList(0, 1));
 
@@ -142,14 +144,19 @@ public class DeviceIdEditorController implements IController {
                                                                                                                                                        0,
                                                                                                                                                        true)));
 
-                OraPopup.showPopup(DeviceIdEditorController.this.deviceIdEditorView, "attention", "alreadyExists",
-                                   DeviceIdEditorController.this.messages, null, new String[] { "yes" });
+                OraPopup.showPopup(
+                    DeviceIdEditorController.this.deviceIdEditorView,
+                    "attention",
+                    "alreadyExists",
+                    DeviceIdEditorController.this.messages,
+                    null,
+                    new String[] { "yes" });
             }
         }
 
         private void removeEntry(ActionEvent e) {
             JTable table = (JTable) e.getSource();
-            int modelRow = Integer.valueOf(e.getActionCommand().split(CMD_DELIMITER)[1]);
+            int modelRow = Integer.parseInt(e.getActionCommand().split(CMD_DELIMITER)[1]);
 
             int decision = OraPopup.showPopup(DeviceIdEditorController.this.deviceIdEditorView,
                                               "attention",
@@ -164,28 +171,28 @@ public class DeviceIdEditorController implements IController {
         }
 
         private void saveAndClose() {
-            Collection<List<String>> arduinoIdEntries = new ArrayList<>();
+            Collection<List<String>> wiredRobotIdEntries = new ArrayList<>(20);
 
             int noneRowIndex = -1;
             for ( int row = 0; row < DeviceIdEditorController.this.deviceIdEditorView.getTblIds().getRowCount(); ++row ) {
-                List<String> entry = new ArrayList<>();
+                List<String> entry = new ArrayList<>(3);
                 entry.add((String) DeviceIdEditorController.this.deviceIdEditorView.getTblIds().getModel().getValueAt(row, 0));
                 entry.add((String) DeviceIdEditorController.this.deviceIdEditorView.getTblIds().getModel().getValueAt(row, 1));
 
-                ArduinoType arduinoType = (ArduinoType) DeviceIdEditorController.this.deviceIdEditorView.getTblIds().getModel().getValueAt(row, 2);
-                if ( arduinoType == ArduinoType.NONE ) {
+                WiredRobotType wiredRobotType = (WiredRobotType) DeviceIdEditorController.this.deviceIdEditorView.getTblIds().getModel().getValueAt(row, 2);
+                if ( wiredRobotType == WiredRobotType.NONE ) {
                     noneRowIndex = row;
                 }
 
-                entry.add(arduinoType.toString());
+                entry.add(wiredRobotType.toString());
 
-                arduinoIdEntries.add(entry);
+                wiredRobotIdEntries.add(entry);
             }
 
             if ( noneRowIndex == -1 ) {
-                ArduinoIdFileHelper.save(arduinoIdEntries);
+                WiredRobotIdFileHelper.save(wiredRobotIdEntries);
 
-                DeviceIdEditorController.this.close();
+                this.close();
             } else {
                 DeviceIdEditorController.this.deviceIdEditorView.getTblIds().setRowSelectionInterval(noneRowIndex, noneRowIndex);
                 DeviceIdEditorController.this.deviceIdEditorView.getTblIds()
@@ -203,11 +210,11 @@ public class DeviceIdEditorController implements IController {
                                    new String[] { "ok" });
             }
         }
-    }
 
-    private void close() {
-        LOG.info("close");
-        this.executorService.shutdownNow();
-        this.deviceIdEditorView.dispose();
+        private void close() {
+            LOG.info("close");
+            DeviceIdEditorController.this.executorService.shutdownNow();
+            DeviceIdEditorController.this.deviceIdEditorView.dispose();
+        }
     }
 }

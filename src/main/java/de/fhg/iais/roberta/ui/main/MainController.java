@@ -10,7 +10,6 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -18,7 +17,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Map.Entry;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,11 +27,16 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 
 import de.fhg.iais.roberta.connection.IConnector;
+import de.fhg.iais.roberta.connection.IConnector.State;
 import de.fhg.iais.roberta.connection.IRobot;
-import de.fhg.iais.roberta.connection.arduino.ArduinoConnector;
-import de.fhg.iais.roberta.connection.nao.NaoConnector;
+import de.fhg.iais.roberta.connection.wired.IWiredRobot;
+import de.fhg.iais.roberta.connection.wired.arduino.Arduino;
+import de.fhg.iais.roberta.connection.wired.microbit.Microbit;
+import de.fhg.iais.roberta.connection.wireless.IWirelessRobot;
+import de.fhg.iais.roberta.connection.wireless.nao.NaoConnector;
 import de.fhg.iais.roberta.main.UpdateHelper;
 import de.fhg.iais.roberta.main.UpdateInfo;
+import de.fhg.iais.roberta.main.UpdateInfo.Status;
 import de.fhg.iais.roberta.ui.IController;
 import de.fhg.iais.roberta.ui.OraPopup;
 import de.fhg.iais.roberta.ui.deviceIdEditor.DeviceIdEditorController;
@@ -59,13 +63,14 @@ import static de.fhg.iais.roberta.ui.main.MainView.CMD_HELP;
 import static de.fhg.iais.roberta.ui.main.MainView.CMD_ID_EDITOR;
 import static de.fhg.iais.roberta.ui.main.MainView.CMD_SCAN;
 import static de.fhg.iais.roberta.ui.main.MainView.CMD_SERIAL;
+import static java.awt.Image.SCALE_AREA_AVERAGING;
 
 public class MainController implements IController, IOraListenable<IRobot> {
     private static final Logger LOG = LoggerFactory.getLogger(MainController.class);
 
     private static final String FILENAME_ROBERTA = "Roberta.png";
 
-    private final Collection<IOraListener<IRobot>> listeners = new ArrayList<>();
+    private final Collection<IOraListener<IRobot>> listeners = new ArrayList<>(5);
 
     // View related
     private final ResourceBundle rb;
@@ -87,7 +92,7 @@ public class MainController implements IController, IOraListenable<IRobot> {
     private final HelpDialog helpDialog;
 
     public MainController(ResourceBundle rb) {
-        MainController.MainViewListener mainViewListener = new MainController.MainViewListener();
+        MainViewListener mainViewListener = new MainViewListener();
         this.mainView = new MainView(rb, mainViewListener);
         this.mainView.setVisible(true);
         this.rb = rb;
@@ -105,7 +110,7 @@ public class MainController implements IController, IOraListenable<IRobot> {
 
     private void checkForUpdates() {
         UpdateInfo updateInfo = UpdateHelper.checkForUpdates();
-        if ( updateInfo.getStatus() == UpdateInfo.Status.NEWER_VERSION ) {
+        if ( updateInfo.getStatus() == Status.NEWER_VERSION ) {
             this.showAttentionPopup("connectorUpdateAvailable", updateInfo.getName(), updateInfo.getUrl());
         }
         this.mainView.setUpdateButton(updateInfo.getStatus());
@@ -113,13 +118,11 @@ public class MainController implements IController, IOraListenable<IRobot> {
 
     public void setRobotList(Set<? extends IRobot> robotList) {
         this.robotList = new ArrayList<>(robotList);
-        this.mainView.showTopRobots(this.robotList.stream()
-                                                  .map(robot -> robot.getClass().getSimpleName() + ": " + robot.getName())
-                                                  .collect(Collectors.toList()));
+        this.mainView.showTopRobots(this.robotList.stream().map(IRobot::getName).collect(Collectors.toList()));
     }
 
     @Override
-    public void setState(IConnector.State state) {
+    public void setState(State state) {
         LOG.info("Setting state to {}", state);
         switch ( state ) {
             case DISCOVER:
@@ -130,30 +133,38 @@ public class MainController implements IController, IOraListenable<IRobot> {
 
                 this.mainView.setWaitForConnect(this.connector.getRobot().getName(), this.connector.getRobot().getConnectionType());
 
-                if ( this.connector instanceof ArduinoConnector ) {
+                if ( this.connector.getRobot() instanceof IWiredRobot ) {
                     this.mainView.showArduinoMenu();
                     this.mainView.setArduinoMenuText(this.connector.getRobot().getName());
                 }
                 break;
             case WAIT_FOR_SERVER:
-                this.mainView.setNew(this.connector.getRobot().getConnectionType(), this.rb.getString("token"), this.connector.getToken(),
-                                     this.connector.getCurrentServerAddress(), true);
+                this.mainView.setNew(
+                    this.connector.getRobot().getConnectionType(),
+                    this.rb.getString("token"),
+                    this.connector.getToken(),
+                    this.connector.getCurrentServerAddress(),
+                    true);
                 this.mainView.setWaitForServer();
                 break;
             case RECONNECT:
                 this.mainView.setConnectButtonText(this.rb.getString("disconnect"));
             case WAIT_FOR_CMD:
                 this.connected = true;
-                this.mainView.setNew(this.connector.getRobot().getConnectionType(), this.rb.getString("name"), this.connector.getRobot().getName(),
-                                     this.connector.getCurrentServerAddress(), false);
+                this.mainView.setNew(
+                    this.connector.getRobot().getConnectionType(),
+                    this.rb.getString("name"),
+                    this.connector.getRobot().getName(),
+                    this.connector.getCurrentServerAddress(),
+                    false);
                 this.mainView.setWaitForCmd(this.connector.getRobot().getConnectionType());
 
-                if ( this.connector instanceof NaoConnector ) {
+                if ( this.connector.getRobot() instanceof IWirelessRobot ) {
                     this.mainView.showCustomNaoLogin();
                 }
                 break;
             case WAIT_UPLOAD:
-                if ( this.connector instanceof NaoConnector ) {
+                if ( this.connector.getRobot() instanceof IWirelessRobot ) {
                     String password = this.mainView.getNaoPassword();
                     ((NaoConnector) this.connector).setPassword(password);
                 }
@@ -198,8 +209,8 @@ public class MainController implements IController, IOraListenable<IRobot> {
 
         this.mainView.showTopTokenServer();
 
-        // Serial monitor is only needed for arduino based robots
-        if ( connector instanceof ArduinoConnector ) {
+        // Serial monitor is only needed for serial supporting robots
+        if ( (connector.getRobot() instanceof Arduino) || (connector.getRobot() instanceof Microbit) ) {
             this.serialMonitorController = new SerialMonitorController(this.rb);
             this.serialMonitorController.setConnector(connector);
         }
@@ -208,7 +219,7 @@ public class MainController implements IController, IOraListenable<IRobot> {
     public void showConfigErrorPopup(Map<Integer, String> errors) {
         StringBuilder sb = new StringBuilder(200);
         sb.append(System.lineSeparator());
-        for ( Map.Entry<Integer, String> entry : errors.entrySet() ) {
+        for ( Entry<Integer, String> entry : errors.entrySet() ) {
             sb.append("Line ").append(entry.getKey()).append(": ").append(this.rb.getString(entry.getValue())).append(System.lineSeparator());
         }
         LOG.error("Errors in config file:{}", sb);
@@ -348,13 +359,7 @@ public class MainController implements IController, IOraListenable<IRobot> {
                                "about",
                                "aboutInfo",
                                MainController.this.rb,
-                               new ImageIcon(new ImageIcon(Objects.requireNonNull(this.getClass()
-                                                                                      .getClassLoader()
-                                                                                      .getResource("images" + File.separator + "iais_logo.gif"))).getImage()
-                                                                                                                                                 .getScaledInstance(
-                                                                                                                                                     100,
-                                                                                                                                                     27,
-                                                                                                                                                     java.awt.Image.SCALE_AREA_AVERAGING)),
+                               new ImageIcon(ImageHelper.getIcon("iais_logo.gif").getImage().getScaledInstance(100, 27, SCALE_AREA_AVERAGING)),
                                new String[] { "ok" },
                                PropertyHelper.getInstance().getProperty("version"));
         }

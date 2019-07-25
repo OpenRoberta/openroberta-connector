@@ -10,9 +10,9 @@ import java.util.Set;
 
 import de.fhg.iais.roberta.connection.IDetector;
 import de.fhg.iais.roberta.connection.IRobot;
-import de.fhg.iais.roberta.connection.arduino.Arduino;
-import de.fhg.iais.roberta.connection.arduino.ArduinoType;
-import de.fhg.iais.roberta.connection.ev3.Ev3;
+import de.fhg.iais.roberta.connection.wired.WiredRobotType;
+import de.fhg.iais.roberta.connection.wired.arduino.Arduino;
+import de.fhg.iais.roberta.connection.wired.ev3.Ev3;
 import de.fhg.iais.roberta.testUtils.TestListenable;
 import de.fhg.iais.roberta.util.IOraListenable;
 
@@ -34,7 +34,7 @@ class DetectorTests {
         IDetector nDDetector = new TestNoRobotDetectedDetector();
 
         RobotDetectorHelper robotDetectorHelper = new RobotDetectorHelper(Arrays.asList(arduDDetector, ev3DDetector));
-        Set<IRobot> detectedRobots = new HashSet<>();
+        Set<IRobot> detectedRobots = new HashSet<>(2);
         while ( !robotDetectorHelper.allDetectorsRanOnce() ) {
             detectedRobots.addAll(robotDetectorHelper.getDetectedRobots());
         }
@@ -43,7 +43,7 @@ class DetectorTests {
         assertThat(detectedRobots, containsInAnyOrder(isA(Arduino.class), isA(Ev3.class)));
 
         robotDetectorHelper = new RobotDetectorHelper(Arrays.asList(arduDDetector, nDDetector));
-        detectedRobots = new HashSet<>();
+        detectedRobots = new HashSet<>(1);
         while ( !robotDetectorHelper.allDetectorsRanOnce() ) {
             detectedRobots.addAll(robotDetectorHelper.getDetectedRobots());
         }
@@ -53,7 +53,7 @@ class DetectorTests {
         assertThat(detectedRobots, contains(isA(Arduino.class)));
 
         robotDetectorHelper = new RobotDetectorHelper(Arrays.asList(nDDetector, ev3DDetector));
-        detectedRobots = new HashSet<>();
+        detectedRobots = new HashSet<>(1);
         while ( !robotDetectorHelper.allDetectorsRanOnce() ) {
             detectedRobots.addAll(robotDetectorHelper.getDetectedRobots());
         }
@@ -63,7 +63,7 @@ class DetectorTests {
         assertThat(detectedRobots, contains(isA(Ev3.class)));
 
         robotDetectorHelper = new RobotDetectorHelper(Arrays.asList(nDDetector, nDDetector));
-        detectedRobots = new HashSet<>();
+        detectedRobots = new HashSet<>(0);
         while ( !robotDetectorHelper.allDetectorsRanOnce() ) {
             detectedRobots.addAll(robotDetectorHelper.getDetectedRobots());
         }
@@ -83,9 +83,9 @@ class DetectorTests {
         IRobot selectedRobot = robotDetectorHelper.getSelectedRobot();
 
         assertThat(selectedRobot, isA(Ev3.class));
-        assertThat(selectedRobot.getName(), is("EV3"));
+        assertThat(selectedRobot.getName(), is("LEGO EV3: EV3"));
 
-        robotTestListenable.fire(new Arduino(ArduinoType.UNO, "1234"));
+        robotTestListenable.fire(new Arduino(WiredRobotType.UNO, "1234"));
         selectedRobot = robotDetectorHelper.getSelectedRobot();
 
         assertThat(selectedRobot, isA(Arduino.class));
@@ -101,7 +101,7 @@ class DetectorTests {
     private static class TestArduinoDetectedDetector implements IDetector {
         @Override
         public List<IRobot> detectRobots() {
-            return Collections.singletonList(new Arduino(ArduinoType.UNO, "1234"));
+            return Collections.singletonList(new Arduino(WiredRobotType.UNO, "1234"));
         }
     }
 

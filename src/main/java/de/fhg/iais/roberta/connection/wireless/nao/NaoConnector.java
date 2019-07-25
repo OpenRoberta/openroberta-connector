@@ -1,4 +1,4 @@
-package de.fhg.iais.roberta.connection.nao;
+package de.fhg.iais.roberta.connection.wireless.nao;
 
 import net.schmizz.sshj.userauth.UserAuthException;
 
@@ -17,7 +17,8 @@ import static de.fhg.iais.roberta.connection.IConnector.State.ERROR_AUTH;
 import static de.fhg.iais.roberta.connection.IConnector.State.ERROR_UPLOAD_TO_ROBOT;
 
 /**
- * Connector class for NAO robots. Handles state and communication between robot, connector and server.
+ * Connector class for NAO robots.
+ * Handles state and communication between robot, connector and server.
  */
 public class NaoConnector extends AbstractConnector<Nao> {
     private static final Logger LOG = LoggerFactory.getLogger(NaoConnector.class);

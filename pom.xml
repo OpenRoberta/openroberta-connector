@@ -286,7 +286,7 @@
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>libs/</classpathPrefix>
                             <mainClass>
-                                de.fhg.iais.roberta.main.OpenRobertaConnectorLauncher
+                                de.fhg.iais.roberta.main.OpenRobertaConnector
                             </mainClass>
                         </manifest>
                     </archive>
@@ -312,7 +312,7 @@
                             <restartOnCrash>true</restartOnCrash>
                             <icon>src/main/resources/images/OR.ico</icon>
                             <classPath>
-                                <mainClass>de.fhg.iais.roberta.main.OpenRobertaConnectorLauncher</mainClass>
+                                <mainClass>de.fhg.iais.roberta.main.OpenRobertaConnector</mainClass>
                                 <jarLocation>libs/</jarLocation>
                                 <jarLocation>resources/</jarLocation>
                                 <addDependencies>true</addDependencies>

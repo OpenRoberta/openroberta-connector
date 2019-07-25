@@ -26,8 +26,8 @@ public class RobotDetectorHelper implements IOraListener<IRobot> {
     private static final int POOL_SIZE = 4;
 
     private final ExecutorService executorService = Executors.newFixedThreadPool(POOL_SIZE);
-    private final Map<IDetector, Future<List<IRobot>>> futures = new HashMap<>();
-    private final Map<IDetector, Boolean> ranOnce = new HashMap<>();
+    private final Map<IDetector, Future<List<IRobot>>> futures = new HashMap<>(5);
+    private final Map<IDetector, Boolean> ranOnce = new HashMap<>(5);
 
     private IRobot selectedRobot = null;
 
@@ -37,7 +37,7 @@ public class RobotDetectorHelper implements IOraListener<IRobot> {
      *
      * @param detectors a list of detectors that should be used to find robots
      */
-    public RobotDetectorHelper(List<IDetector> detectors) {
+    public RobotDetectorHelper(List<? extends IDetector> detectors) {
         for ( IDetector detector : detectors ) {
             this.futures.put(detector, this.executorService.submit(detector::detectRobots));
             this.ranOnce.put(detector, false);
@@ -51,7 +51,7 @@ public class RobotDetectorHelper implements IOraListener<IRobot> {
      * @return a list of currently detected robots
      */
     public List<IRobot> getDetectedRobots() {
-        List<IRobot> robots = new ArrayList<>();
+        List<IRobot> robots = new ArrayList<>(5);
 
         // Check each detector future
         for ( Map.Entry<IDetector, Future<List<IRobot>>> entry : this.futures.entrySet() ) {
@@ -84,7 +84,7 @@ public class RobotDetectorHelper implements IOraListener<IRobot> {
      * @return whether each detector ran at least once
      */
     public boolean allDetectorsRanOnce() {
-        return !this.ranOnce.values().contains(false);
+        return !this.ranOnce.containsValue(false);
     }
 
     /**

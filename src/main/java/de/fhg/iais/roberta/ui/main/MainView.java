@@ -51,7 +51,9 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.text.DefaultEditorKit;
 
 import de.fhg.iais.roberta.connection.IRobot;
+import de.fhg.iais.roberta.connection.IRobot.ConnectionType;
 import de.fhg.iais.roberta.main.UpdateInfo;
+import de.fhg.iais.roberta.main.UpdateInfo.Status;
 import de.fhg.iais.roberta.ui.OraButton;
 import de.fhg.iais.roberta.ui.OraToggleButton;
 import de.fhg.iais.roberta.ui.UiState;
@@ -248,7 +250,7 @@ public class MainView extends JFrame {
     private final ResourceBundle messages;
 
     private boolean toggle = true;
-    private boolean customMenuVisible = false;
+    private boolean customMenuVisible;
 
     MainView(ResourceBundle messages, IOraUiListener listener) {
         this.messages = messages;
@@ -311,7 +313,7 @@ public class MainView extends JFrame {
         this.menu.add(this.menuInfo);
         this.menuInfo.setText(this.messages.getString("info"));
         this.menuInfo.add(this.menuItemUpdate);
-        this.setUpdateButton(UpdateInfo.Status.SAME_VERSION); // set to check for new initially
+        this.setUpdateButton(Status.SAME_VERSION); // set to check for new initially
         this.menuItemUpdate.setActionCommand(CMD_CHECK_FOR_UPDATES);
         this.menuInfo.add(this.menuItemAbout);
         this.menuItemAbout.setText(this.messages.getString("about"));
@@ -436,11 +438,11 @@ public class MainView extends JFrame {
         // Main gif panel
         this.pnlCenter.add(this.pnlGif, constraints);
         this.pnlGif.setLayout(new CardLayout());
-        ImageIcon gif = getGif(UiState.DISCOVERING, IRobot.ConnectionType.WIRED);
+        ImageIcon gif = getGif(UiState.DISCOVERING, ConnectionType.WIRED);
         this.pnlGif.setPreferredSize(new Dimension(gif.getIconWidth(), gif.getIconHeight()));
 
         for ( UiState state : UiState.values() ) {
-            for ( IRobot.ConnectionType connectionType : IRobot.ConnectionType.values() ) {
+            for ( ConnectionType connectionType : ConnectionType.values() ) {
                 JLabel label = new JLabel();
                 label.setIcon(getGif(state, connectionType));
                 label.setHorizontalAlignment(SwingConstants.CENTER);
@@ -594,18 +596,18 @@ public class MainView extends JFrame {
         this.butScan.setEnabled(false);
         this.butScan.setSelected(false);
         this.txtAreaInfo.setText(this.messages.getString("plugInInfo"));
-        ((CardLayout) this.pnlGif.getLayout()).show(this.pnlGif, UiState.DISCOVERING.toString() + IRobot.ConnectionType.WIRED);
+        ((CardLayout) this.pnlGif.getLayout()).show(this.pnlGif, UiState.DISCOVERING.toString() + ConnectionType.WIRED);
         this.hideArduinoMenu();
         this.showTopEmpty();
         this.showCustomAddress();
     }
 
-    void setWaitForConnect(String robotName, IRobot.ConnectionType connectionType) {
+    void setWaitForConnect(String robotName, ConnectionType connectionType) {
         this.butRobot.setState(UiState.DISCOVERED);
         this.butConnect.setEnabled(true);
         this.butScan.setEnabled(true);
         this.txtAreaInfo.setText(this.messages.getString("connectInfo"));
-        ((CardLayout) this.pnlGif.getLayout()).show(this.pnlGif, UiState.DISCOVERING.toString() + connectionType);
+        ((CardLayout) this.pnlGif.getLayout()).show(this.pnlGif, UiState.DISCOVERED.toString() + connectionType);
         this.showTopRobot(robotName);
     }
 
@@ -615,7 +617,7 @@ public class MainView extends JFrame {
         this.showTopTokenServer();
     }
 
-    void setNew(IRobot.ConnectionType connectionType, String prefix, String token, String serverAddress, boolean showCopy) {
+    void setNew(ConnectionType connectionType, String prefix, String token, String serverAddress, boolean showCopy) {
         this.butScan.setEnabled(false);
         this.txtFldPreToken.setText(prefix);
         this.txtFldToken.setText(token);
@@ -634,20 +636,20 @@ public class MainView extends JFrame {
 
         this.txtFldServer.setText(this.messages.getString("connectedTo") + ' ' + servAddress);
         this.txtAreaInfo.setText(this.messages.getString("tokenInfo"));
-        ((CardLayout) this.pnlGif.getLayout()).show(this.pnlGif, UiState.DISCOVERING.toString() + connectionType);
+        ((CardLayout) this.pnlGif.getLayout()).show(this.pnlGif, UiState.CONNECTING.toString() + connectionType);
 
         // dont show advanced options anymore
         this.showCustomEmpty();
         this.hideAdvancedOptions();
     }
 
-    void setWaitForCmd(IRobot.ConnectionType connectionType) {
+    void setWaitForCmd(ConnectionType connectionType) {
         this.butConnect.setText(this.messages.getString("disconnect"));
         this.butConnect.setEnabled(true);
         this.butConnect.setActionCommand(CMD_DISCONNECT);
         this.butRobot.setState(UiState.CONNECTED);
         this.txtAreaInfo.setText(this.messages.getString("serverInfo"));
-        ((CardLayout) this.pnlGif.getLayout()).show(this.pnlGif, UiState.DISCOVERING.toString() + connectionType);
+        ((CardLayout) this.pnlGif.getLayout()).show(this.pnlGif, UiState.CONNECTED.toString() + connectionType);
     }
 
     void setWaitExecution() {
@@ -791,7 +793,7 @@ public class MainView extends JFrame {
      *
      * @param updateStatus the status of the update check
      */
-    void setUpdateButton(UpdateInfo.Status updateStatus) {
+    void setUpdateButton(Status updateStatus) {
         String text = this.messages.getString("update") + ": ";
         switch ( updateStatus ) {
             case NEWER_VERSION:
