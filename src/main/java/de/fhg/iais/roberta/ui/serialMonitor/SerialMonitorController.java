@@ -49,6 +49,9 @@ public class SerialMonitorController implements IController {
     public void setState(State state) {
         LOG.debug("setState: {}", state);
         switch ( state ) {
+            case DISCOVER:
+                this.stopSerialLogging();
+                break;
             case WAIT_UPLOAD:
                 this.stopSerialLogging();
                 break;

@@ -19,6 +19,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowListener;
+import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -598,7 +599,7 @@ public class MainView extends JFrame {
         this.txtAreaInfo.setText(this.messages.getString("plugInInfo"));
         ((CardLayout) this.pnlGif.getLayout()).show(this.pnlGif, UiState.DISCOVERING.toString() + ConnectionType.WIRED);
         this.hideArduinoMenu();
-        this.showTopEmpty();
+        this.showTopRobots(Collections.emptyList());
         this.showCustomAddress();
     }
 
@@ -639,7 +640,6 @@ public class MainView extends JFrame {
         ((CardLayout) this.pnlGif.getLayout()).show(this.pnlGif, UiState.CONNECTING.toString() + connectionType);
 
         // dont show advanced options anymore
-        this.showCustomEmpty();
         this.hideAdvancedOptions();
     }
 
@@ -694,11 +694,6 @@ public class MainView extends JFrame {
         cl.show(this.pnlTopContainer, CARD_TOKEN_SERVER);
     }
 
-    private void showTopEmpty() {
-        CardLayout cl = (CardLayout) this.pnlTopContainer.getLayout();
-        cl.show(this.pnlTopContainer, CARD_TOP_EMPTY);
-    }
-
     // Custom
     private void showCustomAddress() {
         CardLayout cl = (CardLayout) this.pnlCustomContainer.getLayout();
@@ -708,11 +703,6 @@ public class MainView extends JFrame {
     void showCustomNaoLogin() {
         CardLayout cl = (CardLayout) this.pnlCustomContainer.getLayout();
         cl.show(this.pnlCustomContainer, CARD_NAO_LOGIN);
-    }
-
-    private void showCustomEmpty() {
-        CardLayout cl = (CardLayout) this.pnlCustomContainer.getLayout();
-        cl.show(this.pnlCustomContainer, CARD_CUSTOM_EMPTY);
     }
 
     private void showAdvancedOptions() {

@@ -60,7 +60,6 @@ public abstract class AbstractConnector<T extends IRobot> implements IConnector<
     @Override
     public void close() {
         this.running = false;
-        this.fire(State.DISCOVER);
     }
 
     @Override

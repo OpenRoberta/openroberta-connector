@@ -1,5 +1,6 @@
 package de.fhg.iais.roberta.ui.main;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -19,6 +20,7 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
+import javax.swing.border.Border;
 
 import de.fhg.iais.roberta.ui.OraButton;
 
@@ -27,6 +29,8 @@ class HelpDialog extends JDialog {
     static final String CMD_SELECT_NAO = "select_nao";
     static final String CMD_SELECT_OTHER = "select_other";
     static final String CMD_CLOSE_HELP = "close_help";
+
+    private static final Border BORDER = BorderFactory.createEmptyBorder(8, 10, 8, 10);
 
     private final JPanel pnlGreet = new JPanel();
     private final JLabel lblGreet = new JLabel();
@@ -46,16 +50,16 @@ class HelpDialog extends JDialog {
     HelpDialog(Frame frame, ResourceBundle messages, ActionListener listener) {
         super(frame);
         // General
-        this.setLayout(new BoxLayout(this.getContentPane(), BoxLayout.PAGE_AXIS));
+        this.setLayout(new BorderLayout());
         this.setResizable(false);
 
         JPanel jPanel = new JPanel();
-        this.add(jPanel);
+        this.add(jPanel, BorderLayout.PAGE_START);
         jPanel.setLayout(new BoxLayout(jPanel, BoxLayout.LINE_AXIS));
 
         jPanel.add(this.pnlGreet);
         this.pnlGreet.setLayout(new FlowLayout(FlowLayout.LEADING));
-        this.pnlGreet.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+        this.pnlGreet.setBorder(BORDER);
         this.pnlGreet.add(this.lblGreet);
         this.lblGreet.setText(messages.getString("helpConnectionGreeting"));
 
@@ -67,20 +71,18 @@ class HelpDialog extends JDialog {
         this.butClose.setActionCommand(CMD_CLOSE_HELP);
         this.butClose.addActionListener(listener);
 
-        this.add(this.pnlInfo);
-        this.pnlInfo.setLayout(new FlowLayout(FlowLayout.LEADING));
-        this.pnlInfo.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
-        this.pnlInfo.add(this.txtAreaInfo);
-        this.pnlInfo.setPreferredSize(new Dimension(300, 70));
+        this.add(this.pnlInfo, BorderLayout.CENTER);
+        this.pnlInfo.setLayout(new BorderLayout());
+        this.pnlInfo.setBorder(BORDER);
+        this.pnlInfo.add(this.txtAreaInfo, BorderLayout.CENTER);
         this.txtAreaInfo.setText(messages.getString("helpConnection"));
         this.txtAreaInfo.setLineWrap(true);
         this.txtAreaInfo.setWrapStyleWord(true);
-        this.txtAreaInfo.setColumns(20);
         this.txtAreaInfo.setEditable(false);
 
-        this.add(this.pnlRobots);
+        this.add(this.pnlRobots, BorderLayout.PAGE_END);
         this.pnlRobots.setLayout(new FlowLayout(FlowLayout.LEADING));
-        this.pnlRobots.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+        this.pnlRobots.setBorder(BORDER);
         this.pnlRobots.add(this.butEv3);
         this.butEv3.setActionCommand(CMD_SELECT_EV3);
         this.butEv3.addActionListener(listener);
@@ -95,6 +97,7 @@ class HelpDialog extends JDialog {
         this.butOther.setText(messages.getString("other"));
 
         this.setUndecorated(true);
+        this.pack();
         this.pack();
     }
 }

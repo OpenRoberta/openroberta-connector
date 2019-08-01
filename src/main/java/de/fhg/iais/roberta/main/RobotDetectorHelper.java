@@ -1,16 +1,20 @@
 package de.fhg.iais.roberta.main;
 
+import org.apache.commons.lang3.concurrent.ConcurrentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 
 import de.fhg.iais.roberta.connection.IDetector;
 import de.fhg.iais.roberta.connection.IRobot;
@@ -54,7 +58,7 @@ public class RobotDetectorHelper implements IOraListener<IRobot> {
         List<IRobot> robots = new ArrayList<>(5);
 
         // Check each detector future
-        for ( Map.Entry<IDetector, Future<List<IRobot>>> entry : this.futures.entrySet() ) {
+        for ( Entry<IDetector, Future<List<IRobot>>> entry : this.futures.entrySet() ) {
             IDetector detector = entry.getKey();
             Future<List<IRobot>> future = entry.getValue();
 
@@ -106,8 +110,11 @@ public class RobotDetectorHelper implements IOraListener<IRobot> {
      */
     public void reset() {
         this.selectedRobot = null;
-        for ( Map.Entry<IDetector, Boolean> entry : this.ranOnce.entrySet() ) {
+        for ( Entry<IDetector, Boolean> entry : this.ranOnce.entrySet() ) {
             entry.setValue(false);
+        }
+        for ( Entry<IDetector, Future<List<IRobot>>> entry : this.futures.entrySet() ) {
+            entry.setValue(ConcurrentUtils.constantFuture(Collections.emptyList()));
         }
     }
 }

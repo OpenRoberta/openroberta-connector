@@ -86,7 +86,7 @@ public class MainController implements IController, IOraListenable<IRobot> {
     private IConnector<?> connector = null;
 
     // Child controllers of the main controller, this includes other windows/JFrames that are launched from the main controller
-    private SerialMonitorController serialMonitorController = null;
+    private final SerialMonitorController serialMonitorController;
     private final DeviceIdEditorController deviceIdEditorController;
 
     private final HelpDialog helpDialog;
@@ -99,6 +99,8 @@ public class MainController implements IController, IOraListenable<IRobot> {
         this.connected = false;
 
         this.mainView.setCustomAddresses(this.addresses.get());
+
+        this.serialMonitorController = new SerialMonitorController(this.rb);
 
         this.helpDialog = new HelpDialog(this.mainView, rb, mainViewListener);
 
@@ -211,7 +213,6 @@ public class MainController implements IController, IOraListenable<IRobot> {
 
         // Serial monitor is only needed for serial supporting robots
         if ( (connector.getRobot() instanceof Arduino) || (connector.getRobot() instanceof Microbit) ) {
-            this.serialMonitorController = new SerialMonitorController(this.rb);
             this.serialMonitorController.setConnector(connector);
         }
     }
@@ -236,6 +237,7 @@ public class MainController implements IController, IOraListenable<IRobot> {
         LOG.debug("setDiscover");
         this.connected = false;
         this.mainView.setDiscover();
+        this.serialMonitorController.setState(State.DISCOVER);
     }
 
     private void showAttentionPopup(String key, String... entries) {
@@ -285,6 +287,7 @@ public class MainController implements IController, IOraListenable<IRobot> {
                     MainController.this.connector.connect();
                     break;
                 case CMD_DISCONNECT:
+                    setDiscover(); // first!, order is important, otherwise ui thread does into deadlock
                     MainController.this.connector.close();
                     break;
                 case CMD_HELP:
