@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -190,11 +191,11 @@ final class DeviceIdEditorView extends JDialog {
     private void initTypeColumn(TableColumn typeColumn) {
         JComboBox<WiredRobotType> comboBox = new JComboBox<>();
 
-        List<WiredRobotType> wiredRobotTypes = new ArrayList<>(Arrays.asList(WiredRobotType.values()));
-        wiredRobotTypes.remove(WiredRobotType.NONE);
-
+        Collection<WiredRobotType> wiredRobotTypes = new ArrayList<>(Arrays.asList(WiredRobotType.values()));
         for ( WiredRobotType type : wiredRobotTypes ) {
-            comboBox.addItem(type);
+            if (type.isSerial()) {
+                comboBox.addItem(type);
+            }
         }
 
         typeColumn.setCellEditor(new DefaultCellEditor(comboBox));

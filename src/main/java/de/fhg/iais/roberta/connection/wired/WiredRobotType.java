@@ -1,22 +1,30 @@
 package de.fhg.iais.roberta.connection.wired;
 
 public enum WiredRobotType {
-    UNO ("uno", "Arduino Uno"),
-    MEGA ("mega", "Arduino Mega"),
-    NANO ("nano", "Arduino Nano"),
-    BOB3 ("bob3", "BOB3"),
-    BOTNROLL ("ardu", "Bot'n Roll"),
-    MBOT ("mbot", "mBot"),
-    MICROBIT("microbit", "Micro:bit/Calliope mini"),
-    EV3("ev3", "LEGO EV3"),
-    NONE ("none", "none");
+    UNO ("uno", "Arduino Uno", true),
+    MEGA ("mega", "Arduino Mega", true),
+    NANO ("nano", "Arduino Nano", true),
+    BOB3 ("bob3", "BOB3", true),
+    BOTNROLL ("ardu", "Bot'n Roll", true),
+    MBOT ("mbot", "mBot", true),
+    MICROBIT("microbit", "Micro:bit/Calliope mini", true),
+    EV3("ev3", "LEGO EV3", false),
+    NONE ("none", "none", false);
 
     private final String text;
     private final String prettyText;
+    private final boolean serial;
 
-    WiredRobotType(String text, String prettyText) {
+    /**
+     * Creates a new wired robot type.
+     * @param text the internal name of the robot type
+     * @param prettyText the pretty text to display
+     * @param serial whether the robot communicates over serial
+     */
+    WiredRobotType(String text, String prettyText, boolean serial) {
         this.text = text;
         this.prettyText = prettyText;
+        this.serial = serial;
     }
 
     @Override
@@ -26,6 +34,10 @@ public enum WiredRobotType {
 
     public String getPrettyText() {
         return this.prettyText;
+    }
+
+    public boolean isSerial() {
+        return this.serial;
     }
 
     public static WiredRobotType fromString(String text) {

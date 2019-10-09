@@ -55,7 +55,10 @@ public final class WiredRobotIdFileHelper {
 
                     String error = checkIdEntryFormat(values);
                     if ( error.isEmpty() ) {
-                        supportedRobots.put(new SerialDevice(values.get(0), values.get(1), "", ""), WiredRobotType.fromString(values.get(2)));
+                        WiredRobotType wiredRobotType = WiredRobotType.fromString(values.get(2));
+                        if (wiredRobotType.isSerial()) {
+                            supportedRobots.put(new SerialDevice(values.get(0), values.get(1), "", ""), wiredRobotType);
+                        }
                     } else {
                         readIdFileErrors.put(lineNr, error);
                     }

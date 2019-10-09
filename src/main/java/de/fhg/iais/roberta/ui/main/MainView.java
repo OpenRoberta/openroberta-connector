@@ -51,9 +51,7 @@ import javax.swing.WindowConstants;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.text.DefaultEditorKit;
 
-import de.fhg.iais.roberta.connection.IRobot;
 import de.fhg.iais.roberta.connection.IRobot.ConnectionType;
-import de.fhg.iais.roberta.main.UpdateInfo;
 import de.fhg.iais.roberta.main.UpdateInfo.Status;
 import de.fhg.iais.roberta.ui.OraButton;
 import de.fhg.iais.roberta.ui.OraToggleButton;
@@ -244,8 +242,8 @@ public class MainView extends JFrame {
     private static final String CARD_CUSTOM_EMPTY = "customEmpty";
 
     // Resources
-    private static final String FILENAME_ARROW_DOWN = "arrow-sorted-down.png";
-    private static final String FILENAME_ARROW_UP = "arrow-sorted-up.png";
+    private static final String FILENAME_UNCHECKED = "input-unchecked.png";
+    private static final String FILENAME_CHECKED = "input-checked.png";
     private static final String FILENAME_CLIPBOARD = "clipboard.png";
 
     private final ResourceBundle messages;
@@ -516,7 +514,7 @@ public class MainView extends JFrame {
 
         this.pnlCustomInfo.add(this.butCustom);
         this.butCustom.setActionCommand("customaddress");
-        this.butCustom.setIcon(ImageHelper.getIcon(FILENAME_ARROW_DOWN));
+        this.butCustom.setIcon(ImageHelper.getIcon(FILENAME_UNCHECKED));
         this.butCustom.setText(this.messages.getString("checkCustomDesc"));
         this.butCustom.setBorderPainted(false);
         this.butCustom.setBackground(Color.WHITE);
@@ -638,9 +636,6 @@ public class MainView extends JFrame {
         this.txtFldServer.setText(this.messages.getString("connectedTo") + ' ' + servAddress);
         this.txtAreaInfo.setText(this.messages.getString("tokenInfo"));
         ((CardLayout) this.pnlGif.getLayout()).show(this.pnlGif, UiState.CONNECTING.toString() + connectionType);
-
-        // dont show advanced options anymore
-        this.hideAdvancedOptions();
     }
 
     void setWaitForCmd(ConnectionType connectionType) {
@@ -712,7 +707,7 @@ public class MainView extends JFrame {
         this.setSize(size);
         this.pnlCustomHeading.setVisible(true);
         this.pnlCustomAddress.setVisible(true);
-        this.butCustom.setIcon(ImageHelper.getIcon(FILENAME_ARROW_UP));
+        this.butCustom.setIcon(ImageHelper.getIcon(FILENAME_CHECKED));
         this.customMenuVisible = true;
     }
 
@@ -724,7 +719,7 @@ public class MainView extends JFrame {
             this.setSize(size);
             this.pnlCustomHeading.setVisible(false);
             this.pnlCustomAddress.setVisible(false);
-            this.butCustom.setIcon(ImageHelper.getIcon(FILENAME_ARROW_DOWN));
+            this.butCustom.setIcon(ImageHelper.getIcon(FILENAME_UNCHECKED));
             this.customMenuVisible = false;
         }
     }
