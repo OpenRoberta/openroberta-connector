@@ -9,6 +9,8 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.URI;
@@ -103,6 +105,13 @@ public class MainController implements IController, IOraListenable<IRobot> {
         this.serialMonitorController = new SerialMonitorController(this.rb);
 
         this.helpDialog = new HelpDialog(this.mainView, rb, mainViewListener);
+        // Update location of help dialog when moving the main window
+        this.mainView.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentMoved(ComponentEvent e) {
+                helpDialog.setLocation(mainView.getRobotButtonLocation());
+            }
+        });
 
         // Check for updates on startup
         this.checkForUpdates();
@@ -229,7 +238,6 @@ public class MainController implements IController, IOraListenable<IRobot> {
     }
 
     public void showHelp() {
-        this.helpDialog.setLocation(this.mainView.getRobotButtonLocation());
         this.helpDialog.setVisible(true);
     }
 

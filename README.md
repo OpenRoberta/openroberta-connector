@@ -41,7 +41,7 @@ branch.
 #### Automatically
 
 TravisCI automatically generates installers for Linux, Windows and OSX when a tag is created.
-These are added to a release draft for the tag.
+These are added to a GitHub Releases draft for the tag.
  
 #### Manual
 
@@ -65,3 +65,9 @@ Mac:
 - run `mvn clean install` in the project directory
 - run `release.sh osx` in the `installers` directory
 - add the version to the resulting file
+
+### Release
+To release run `mvn release:clean release:prepare` on the `develop` branch.
+The maven release plugin will ask for some information regarding the version numbers and automatically create commits and a tag with the updated versions.
+Now, merge the used branch into `master` and remove the last (`prepare for next development iteration`) commit with `git reset HEAD~1 --hard`, as it is not needed on `master`.
+Finally, push `master`, `develop` and the tag (`git push --tags`).

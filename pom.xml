@@ -309,18 +309,16 @@
                             <outfile>${basedir}/installers/windows/${project.artifactId}.exe</outfile>
                             <jar>${basedir}/target/${project.artifactId}-${project.version}.jar</jar>
                             <chdir>.</chdir>
-                            <restartOnCrash>true</restartOnCrash>
                             <icon>src/main/resources/images/OR.ico</icon>
+                            <singleInstance>
+                                <mutexName>OpenRoberta</mutexName>
+                            </singleInstance>
                             <classPath>
                                 <mainClass>de.fhg.iais.roberta.main.OpenRobertaConnector</mainClass>
                                 <jarLocation>libs/</jarLocation>
                                 <jarLocation>resources/</jarLocation>
                                 <addDependencies>true</addDependencies>
                             </classPath>
-                            <singleInstance>
-                                <mutexName>OpenRoberta</mutexName>
-                                <windowTitle />
-                            </singleInstance>
                             <jre>
                                 <minVersion>1.8.0</minVersion>
                             </jre>
@@ -357,6 +355,7 @@
                 <configuration>
                     <preparationGoals>clean verify</preparationGoals>
                     <tagNameFormat>v@{project.version}</tagNameFormat>
+                    <pushChanges>false</pushChanges>
                 </configuration>
             </plugin>
         </plugins>
