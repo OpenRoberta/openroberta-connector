@@ -148,6 +148,10 @@
                 <directory>resources/linux/arduino</directory>
             </resource>
             <resource>
+                <targetPath>${basedir}/installers/linux/resources/esp32</targetPath>
+                <directory>resources/esp32</directory>
+            </resource>
+            <resource>
                 <targetPath>${basedir}/installers/linux</targetPath>
                 <directory>src/main/resources/images</directory>
                 <includes>
@@ -168,6 +172,10 @@
                 <directory>resources/windows/arduino</directory>
             </resource>
             <resource>
+                <targetPath>${basedir}/installers/windows/resources/esp32</targetPath>
+                <directory>resources/esp32</directory>
+            </resource>
+            <resource>
                 <targetPath>${basedir}/installers/windows</targetPath>
                 <directory>resources/windows</directory>
                 <includes>
@@ -179,6 +187,10 @@
             <resource>
                 <targetPath>${basedir}/installers/osx/resources/osx/arduino</targetPath>
                 <directory>resources/osx/arduino</directory>
+            </resource>
+            <resource>
+                <targetPath>${basedir}/installers/osx/resources/esp32</targetPath>
+                <directory>resources/esp32</directory>
             </resource>
             <resource>
                 <targetPath>${basedir}/installers/osx</targetPath>

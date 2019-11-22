@@ -31,6 +31,9 @@ public class ArduinoConnector extends AbstractConnector<Arduino> {
         switch ( this.state ) {
             case DISCOVER:
                 this.arduinoCommunicator = new ArduinoCommunicator(this.robot);
+                if (!this.arduinoCommunicator.isEspInitialized()) {
+                    this.reset(State.ERROR_PYTHON_REQUIRE);
+                }
                 this.fire(State.WAIT_FOR_CONNECT_BUTTON_PRESS);
                 break;
             case CONNECT_BUTTON_IS_PRESSED:

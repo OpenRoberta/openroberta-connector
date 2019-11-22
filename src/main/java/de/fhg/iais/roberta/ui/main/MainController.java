@@ -212,6 +212,9 @@ public class MainController implements IController, IOraListenable<IRobot> {
                     this.showAttentionPopup("errorUploadToRobot", getLastNLines(errorOutput, UPLOAD_ERROR_LINES));
                 }
                 break;
+            case ERROR_PYTHON_REQUIRE:
+                this.showAttentionPopup("errorPythonRequire");
+                break;
             case TOKEN_TIMEOUT:
                 this.showAttentionPopup("tokenTimeout");
                 break;

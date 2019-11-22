@@ -59,6 +59,7 @@ public class ServerCommunicator {
     private static final String DOWNLOAD_ADDRESS = "/rest/download";
     private static final String UPDATE_ADDRESS = "/rest/update";
     private static final int CONNECT_TIMEOUT = 5000;
+    private static final int READ_TIMEOUT = 300000;
 
     private String serverAddress;
 
@@ -137,6 +138,7 @@ public class ServerCommunicator {
     private static void setURLConnectionProperties(HttpURLConnection conn, String requestMethod, Map<String, String> requestProperties)
         throws ProtocolException {
         conn.setConnectTimeout(CONNECT_TIMEOUT);
+        conn.setReadTimeout(READ_TIMEOUT);
         conn.setDoOutput(true);
         conn.setRequestMethod(requestMethod);
 

@@ -34,6 +34,7 @@ public interface IConnector<T extends IRobot> extends IOraListenable<IConnector.
         ERROR_AUTH,
         ERROR_UPLOAD_TO_ROBOT,
         ERROR_MISSING_PASSWORD,
+        ERROR_PYTHON_REQUIRE,
         TOKEN_TIMEOUT;
 
         private List<String> additionalInfo = new ArrayList<>();

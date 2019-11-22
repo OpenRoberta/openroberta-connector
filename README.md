@@ -9,6 +9,7 @@
 - Bot'n'Roll
 - mBot
 - NAO
+- Festo Bionics4Education (may require [this driver](https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers) on macOS)
 
 Standalone program for connecting robot hardware to the Open Roberta lab using
 an usb or ssh connection.
@@ -35,6 +36,17 @@ branch.
     git clone git://github.com/OpenRoberta/openroberta-connector.git
     cd openroberta-connector
     git checkout -b develop origin/develop
+    
+To regenerate the `esptool.exe` when upgrading the `esptool` version download the wanted version and run this:
+```
+pip install pyinstaller
+pyinstaller --onefile \
+            --specpath build_tmp \
+            --workpath build_tmp/build \
+            --distpath build_tmp/dist \
+            esptool.py
+```
+to generate the binary.
     
 ### Installer creation
 
