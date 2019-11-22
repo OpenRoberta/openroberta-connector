@@ -58,14 +58,25 @@ public class SerialRobotDetector implements IDetector {
 
         for ( SerialDevice device : devices ) {
             WiredRobotType wiredRobotType = this.supportedRobots.get(device);
-
             if ( wiredRobotType != null ) {
-                if ( wiredRobotType == WiredRobotType.NONE ) {
-                    throw new IllegalStateException("Robot type can not be NONE!");
-                } else if ( wiredRobotType == WiredRobotType.MICROBIT ) {
-                    detectedRobots.add(new Microbit(device.port));
-                } else {
-                    detectedRobots.add(new Arduino(wiredRobotType, device.port));
+                switch ( wiredRobotType ) {
+                    case UNO:
+                    case MEGA:
+                    case NANO:
+                    case BOB3:
+                    case BOTNROLL:
+                    case MBOT:
+                    case FESTOBIONIC:
+                        detectedRobots.add(new Arduino(wiredRobotType, device.port));
+                        break;
+                    case MICROBIT:
+                        detectedRobots.add(new Microbit(device.port));
+                        break;
+                    case EV3:
+                    case NONE:
+                        throw new IllegalStateException("Robot type not supported");
+                    default:
+                        throw new IllegalStateException("Robot type not implemented");
                 }
             }
         }

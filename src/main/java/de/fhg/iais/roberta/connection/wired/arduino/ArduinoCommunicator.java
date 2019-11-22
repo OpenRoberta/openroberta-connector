@@ -6,10 +6,15 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipEntry;
 
 import de.fhg.iais.roberta.connection.wired.IWiredRobot;
 import de.fhg.iais.roberta.util.Pair;
@@ -97,6 +102,44 @@ class ArduinoCommunicator {
                     args.add("-Ufuse5:w:0xC9:m"); // program fuses
                     args.add("-Ufuse8:w:0x02:m"); // program fuses
                     args.add("-Uflash:w:" + PropertyHelper.getInstance().getProperty("megaavrPath") + "/bootloaders/atmega4809_uart_bl.hex:i"); // additional bootloader
+                    break;
+                case FESTOBIONIC:
+                    // TODO very specific workaround for now: files are zipped serverside and sent to the Connector
+                    // here the files are unzipped and esptool is called to flash the two files
+                    File zippedFile = new File(filePath);
+                    File destDir = new File(zippedFile.getParent());
+                    byte[] buffer = new byte[1024];
+                    try(ZipInputStream zis = new ZipInputStream(new FileInputStream(zippedFile))) {
+                        ZipEntry zipEntry = zis.getNextEntry();
+                        while ( zipEntry != null ) {
+                            File newFile = new File(destDir, zipEntry.getName());
+                            try(FileOutputStream fos = new FileOutputStream(newFile)) {
+                                int len;
+                                while ( (len = zis.read(buffer)) > 0 ) {
+                                    fos.write(buffer, 0, len);
+                                }
+                            }
+                            zipEntry = zis.getNextEntry();
+                        }
+                        zis.closeEntry();
+                    }
+                    args.clear(); // reset previous arguments, festo has specific ESP ones
+                    args.add("python");
+                    args.add(PropertyHelper.getInstance().getProperty("espPath") + "esptool.py");
+                    args.add("--chip"); args.add("esp32");
+                    args.add("--port"); args.add( portPath + portName);
+                    args.add("--baud"); args.add( "921600");
+                    args.add("--before"); args.add( "default_reset");
+                    args.add("--after"); args.add( "hard_reset");
+                    args.add("write_flash");
+                    args.add("-z");
+                    args.add("--flash_mode"); args.add( "dio");
+                    args.add("--flash_freq"); args.add( "80m");
+                    args.add("--flash_size"); args.add( "detect");
+                    args.add("0xe000"); args.add( PropertyHelper.getInstance().getProperty("espPath") + "partitions/boot_app0.bin");
+                    args.add("0x1000"); args.add( PropertyHelper.getInstance().getProperty("espPath") + "sdk/bin/bootloader_qio_80m.bin");
+                    args.add("0x10000"); args.add( zippedFile.getParent() + "/" + zippedFile.getName().split("\\.")[0] + ".ino.bin");
+                    args.add("0x8000"); args.add( zippedFile.getParent() + "/" + zippedFile.getName().split("\\.")[0] + ".ino.partitions.bin");
                     break;
                 default:
                     throw new IllegalStateException("Robot type not supported");
