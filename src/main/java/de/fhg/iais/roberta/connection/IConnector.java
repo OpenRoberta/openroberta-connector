@@ -1,5 +1,10 @@
 package de.fhg.iais.roberta.connection;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import de.fhg.iais.roberta.util.IOraListenable;
 
 /**
@@ -29,7 +34,27 @@ public interface IConnector<T extends IRobot> extends IOraListenable<IConnector.
         ERROR_AUTH,
         ERROR_UPLOAD_TO_ROBOT,
         ERROR_MISSING_PASSWORD,
-        TOKEN_TIMEOUT
+        TOKEN_TIMEOUT;
+
+        private List<String> additionalInfo = new ArrayList<>();
+
+        /**
+         * Optional info that may be needed by users of the State enum.
+         * @param additionalInfo a variable number of strings to be added
+         * @return the State object for chaining
+         */
+        public State setAdditionalInfo(String... additionalInfo) {
+            this.additionalInfo = Collections.unmodifiableList(Arrays.asList(additionalInfo));
+            return this;
+        }
+
+        /**
+         * Returns all additional info. May be empty.
+         * @return an unmodifiable list of additional info
+         */
+        public List<String> getAdditionalInfo() {
+            return additionalInfo;
+        }
     }
 
     String KEY_TOKEN = "token";

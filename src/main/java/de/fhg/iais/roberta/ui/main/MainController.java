@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -71,6 +72,7 @@ public class MainController implements IController, IOraListenable<IRobot> {
     private static final Logger LOG = LoggerFactory.getLogger(MainController.class);
 
     private static final String FILENAME_ROBERTA = "Roberta.png";
+    private static final int UPLOAD_ERROR_LINES = 4;
 
     private final Collection<IOraListener<IRobot>> listeners = new ArrayList<>(5);
 
@@ -202,7 +204,13 @@ public class MainController implements IController, IOraListenable<IRobot> {
                 this.showAttentionPopup("errorAuth");
                 break;
             case ERROR_UPLOAD_TO_ROBOT:
-                this.showAttentionPopup("errorUploadToRobot");
+                List<String> additionalInfo = new ArrayList<>(state.getAdditionalInfo());
+                if (additionalInfo.isEmpty()) {
+                    this.showAttentionPopup("errorUploadToRobot", "");
+                } else {
+                    String errorOutput = additionalInfo.get(0);
+                    this.showAttentionPopup("errorUploadToRobot", getLastNLines(errorOutput, UPLOAD_ERROR_LINES));
+                }
                 break;
             case TOKEN_TIMEOUT:
                 this.showAttentionPopup("tokenTimeout");
@@ -210,6 +218,16 @@ public class MainController implements IController, IOraListenable<IRobot> {
             default:
                 break;
         }
+    }
+
+    private String getLastNLines(String s, int n) {
+        List<String> lines = Arrays.asList(s.split("\n"));
+        List<String> lastNLines = lines.subList(Math.max(lines.size() - n, 0), lines.size());
+        StringBuilder sb = new StringBuilder();
+        for ( String line : lastNLines ) {
+            sb.append(line).append("\n");
+        }
+        return sb.toString();
     }
 
     @Override
@@ -238,6 +256,7 @@ public class MainController implements IController, IOraListenable<IRobot> {
     }
 
     public void showHelp() {
+        this.helpDialog.setLocation(this.mainView.getRobotButtonLocation());
         this.helpDialog.setVisible(true);
     }
 

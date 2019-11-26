@@ -1,14 +1,19 @@
 package de.fhg.iais.roberta.connection.wired.arduino;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
+import java.nio.charset.Charset;
 
 import de.fhg.iais.roberta.connection.wired.IWiredRobot;
+import de.fhg.iais.roberta.util.Pair;
 import de.fhg.iais.roberta.util.PropertyHelper;
 
 class ArduinoCommunicator {
@@ -51,7 +56,7 @@ class ArduinoCommunicator {
         return deviceInfo;
     }
 
-    void uploadFile(String portName, String filePath) {
+    Pair<Integer, String> uploadFile(String portName, String filePath) {
         this.setParameters();
         String portPath = "/dev/";
         if ( SystemUtils.IS_OS_WINDOWS ) {
@@ -91,20 +96,20 @@ class ArduinoCommunicator {
                                    "-P" + portPath + portName,
                                    eArg);
 
-            //            processBuilder.redirectInput(Redirect.INHERIT);
-            //            processBuilder.redirectOutput(Redirect.INHERIT);
-            processBuilder.redirectError(Redirect.INHERIT);
-
             Process p = processBuilder.start();
             int eCode = p.waitFor();
+            String errorOutput = IOUtils.toString(p.getErrorStream(), Charset.defaultCharset());
             if ( eCode == 0 ) {
                 LOG.info("Program uploaded successfully");
             } else {
-                LOG.info("Program was unable to be uploaded: {}", eCode);
+                LOG.error("Program was unable to be uploaded: {}, {}", eCode, errorOutput);
             }
             LOG.debug("Exit code {}", eCode);
+
+            return new Pair<>(eCode, errorOutput);
         } catch ( IOException | InterruptedException e ) {
             LOG.error("Error while uploading to arduino: {}", e.getMessage());
+            return new Pair<>(1, "Something went wrong while uploading the file.");
         }
     }
 }

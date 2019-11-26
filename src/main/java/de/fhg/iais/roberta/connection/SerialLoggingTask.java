@@ -34,7 +34,6 @@ public class SerialLoggingTask extends AbstractLoggingTask {
     @Override
     protected void log() {
         try {
-            LOG.info("TEST");
             byte[] readBuffer = new byte[this.comPort.bytesAvailable()];
             this.comPort.readBytes(readBuffer, readBuffer.length);
             fire(readBuffer);

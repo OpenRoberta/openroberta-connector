@@ -86,19 +86,25 @@ public class ArduinoConnector extends AbstractConnector<Arduino> {
                             }
 
                             this.fire(State.WAIT_UPLOAD);
-                            this.arduinoCommunicator.uploadFile(this.robot.getPort(), temp.getAbsolutePath());
+                            Pair<Integer, String> result = this.arduinoCommunicator.uploadFile(this.robot.getPort(), temp.getAbsolutePath());
+                            if (result.getFirst() != 0) {
+                                this.fire(State.ERROR_UPLOAD_TO_ROBOT.setAdditionalInfo(result.getSecond()));
+                                this.fire(State.WAIT_FOR_CMD);
+                            }
                         } catch ( FileNotFoundException e ) {
                             LOG.info("File not found: {}", e.getMessage());
+                            this.fire(State.ERROR_UPLOAD_TO_ROBOT);
                             this.fire(State.WAIT_FOR_CMD);
                         } catch ( IOException io ) {
                             LOG.info("Download and run failed: {}", io.getMessage());
                             LOG.info("Do not give up yet - make the next push request");
+                            this.fire(State.ERROR_UPLOAD_TO_ROBOT);
                             this.fire(State.WAIT_FOR_CMD);
                         }
                     } else if ( cmdKey.equals(CMD_CONFIGURATION) ) {
                         LOG.info("Configuration");
                     } else if ( cmdKey.equals(CMD_UPDATE) ) {
-                        LOG.info("Firmware updated not necessary and not supported!");// LOG and go to abort
+                        LOG.info("Firmware update not necessary and not supported!");
                     } else if ( cmdKey.equals(CMD_ABORT) ) {
                         LOG.error("Unexpected response from server: {}", cmdKey);
                         this.reset(State.ERROR_HTTP);
