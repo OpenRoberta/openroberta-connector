@@ -6,11 +6,10 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.lang.ProcessBuilder.Redirect;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 
 import de.fhg.iais.roberta.connection.wired.IWiredRobot;
 import de.fhg.iais.roberta.util.Pair;
@@ -63,39 +62,50 @@ class ArduinoCommunicator {
             portPath = "";
         }
         try {
-            String pArg;
-            String cArg;
-            String eArg = "";
+            List<String> args = new ArrayList<>();
+            args.add(this.avrPath); // path to executable
+            args.add("-v"); // verbose output
+            args.add("-D"); // disables auto erase for flashing
+            args.add("-C" + this.avrConfPath); // specific config file
+            args.add("-Uflash:w:" + filePath + ":i"); // the program to flash
             switch ( this.robot.getType() ) {
-                // specify if different
+                case UNO:
+                case NANO:
+                case BOTNROLL:
+                case MBOT:
+                    args.add("-patmega328p"); // part number
+                    args.add("-carduino"); // programmer
+                    args.add("-P" + portPath + portName); // port of the device
+                    break;
                 case MEGA:
-                    pArg = "-patmega2560";
-                    cArg = "-cwiring";
+                    args.add("-patmega2560"); // part number
+                    args.add("-cwiring"); // programmer
+                    args.add("-P" + portPath + portName); // port of the device
                     break;
                 case BOB3:
-                    pArg = "-patmega88";
-                    cArg = "-cavrisp2";
-                    eArg = "-e";
+                    args.add("-patmega88"); // part number
+                    args.add("-cavrisp2"); // programmer
+                    args.add("-e"); // enable erase
+                    args.add("-P" + portPath + portName); // port of the device
                     break;
-                default: // take uno config as default, this is used by Uno, Nano, Bot'n Roll and Mbot
-                    pArg = "-patmega328p";
-                    cArg = "-carduino";
+                case UNOWIFIREV2:
+                    args.add("-patmega4809"); // part number
+                    args.add("-cxplainedmini_updi"); // programmer
+                    args.add("-e"); // enable erase
+                    args.add("-Pusb"); // port of the device
+                    args.add("-Ufuse2:w:0x01:m"); // program fuses
+                    args.add("-Ufuse5:w:0xC9:m"); // program fuses
+                    args.add("-Ufuse8:w:0x02:m"); // program fuses
+                    args.add("-Uflash:w:" + PropertyHelper.getInstance().getProperty("megaavrPath") + "/bootloaders/atmega4809_uart_bl.hex:i"); // additional bootloader
                     break;
+                default:
+                    throw new IllegalStateException("Robot type not supported");
             }
 
             LOG.info("Starting to upload program {} to {}{}", filePath, portPath, portName);
-            ProcessBuilder
-                processBuilder =
-                new ProcessBuilder(this.avrPath,
-                                   "-v",
-                                   "-D",
-                                   pArg,
-                                   cArg,
-                                   "-Uflash:w:" + filePath + ":i",
-                                   "-C" + this.avrConfPath,
-                                   "-P" + portPath + portName,
-                                   eArg);
 
+            ProcessBuilder processBuilder = new ProcessBuilder(args);
+            processBuilder.inheritIO();
             Process p = processBuilder.start();
             int eCode = p.waitFor();
             String errorOutput = IOUtils.toString(p.getErrorStream(), Charset.defaultCharset());

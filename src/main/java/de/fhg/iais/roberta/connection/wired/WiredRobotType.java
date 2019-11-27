@@ -9,6 +9,7 @@ public enum WiredRobotType {
     MBOT ("mbot", "mBot", true),
     MICROBIT("microbit", "Micro:bit/Calliope mini", true),
     EV3("ev3", "LEGO EV3", false),
+    UNOWIFIREV2("unowifirev2", "Arduino Uno Wifi Rev2", true),
     NONE ("none", "none", false);
 
     private final String text;

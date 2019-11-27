@@ -10,6 +10,7 @@
 # Bot'n Roll:              ardu
 # Mbot:                    mbot
 # Micro:bit/Calliope mini: microbit
+# Arduino Uno Wifi Rev2:   unowifirev2
 
 2341,0043,uno
 2A03,0043,uno
@@ -19,3 +20,4 @@
 10C4,EA60,ardu
 1A86,7523,mbot
 0D28,0204,microbit
+03EB,2145,unowifirev2
