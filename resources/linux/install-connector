@@ -1,0 +1,61 @@
+#!/bin/bash
+
+set -eo pipefail
+
+usage() {
+  echo "usage: install-connector [-d <bool>]"
+  echo
+  echo "-d, --add-to-dialout   whether to add user to the dialout group, default: true"
+}
+
+main() {
+  declare addToDialout=true
+  declare relogNeeded=false
+
+  while [[ $# -gt 0 ]]; do
+      case $1 in
+          -d | --add-to-dialout ) shift
+                                  addToDialout=$1
+                                  ;;
+          -h | --help )           usage
+                                  exit
+                                  ;;
+          * )                     ;;
+      esac
+      shift
+  done
+
+  declare dir
+  dir="$( pwd )"
+  declare installPath="$HOME/.local/share/applications"
+
+  echo Installing Open Roberta Connector
+  if id -nG "$USER" | grep -qw "dialout"; then
+    echo "User $USER in dialout group, no action necessary"
+  else
+    if [ "$addToDialout" = true ] ; then
+      echo "User $USER not in dialout, adding to dialout, admin rights needed"
+      sudo gpasswd -a "$USER" dialout
+      relogNeeded=true
+    else
+      echo "User should not be added to dialout group"
+    fi
+  fi
+  echo "Creating desktop entry ORCON.desktop in $installPath"
+  echo "[Desktop Entry]" > "$installPath/ORCON.desktop"
+  echo "Version=${version}" >> "$installPath/ORCON.desktop"
+  echo "Name=Open Roberta Connector" >> "$installPath/ORCON.desktop"
+  echo "Exec=java -jar -Dfile.encoding=utf-8 $dir/${artifactId}.jar" >> "$installPath/ORCON.desktop"
+  echo "Path=$dir" >> "$installPath/ORCON.desktop"
+  echo "Icon=$dir/OR.png" >> "$installPath/ORCON.desktop"
+  echo "Terminal=false" >> "$installPath/ORCON.desktop"
+  echo "Type=Application" >> "$installPath/ORCON.desktop"
+  echo "Categories=Application;Development;" >> "$installPath/ORCON.desktop"
+  chmod u+x "$installPath/ORCON.desktop"
+  echo "Successfully installed Open Roberta Connector"
+  if [ "$relogNeeded" = true ] ; then
+    echo "Please logout and login to finalize adding you to the dialout group, afterwards you can use the Connector"
+  fi
+}
+
+main "$@"
