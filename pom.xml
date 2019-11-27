@@ -3,10 +3,10 @@
 
     <groupId>de.fhg.iais.roberta</groupId>
     <artifactId>OpenRobertaConnector</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>1.1.0</version>
     <scm>
         <developerConnection>scm:git:git@github.com:OpenRoberta/openroberta-connector.git</developerConnection>
-      <tag>HEAD</tag>
+      <tag>v1.1.0</tag>
   </scm>
 
     <properties>
@@ -350,7 +350,7 @@
                         <phase>install</phase>
                         <configuration>
                             <target>
-                                <chmod file="${basedir}/installers/linux/install-connector" perm="755"/>
+                                <chmod file="${basedir}/installers/linux/install-connector" perm="755" />
                             </target>
                         </configuration>
                         <goals>
