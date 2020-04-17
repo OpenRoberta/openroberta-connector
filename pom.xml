@@ -148,8 +148,8 @@
                 <directory>resources/linux/arduino</directory>
             </resource>
             <resource>
-                <targetPath>${basedir}/installers/linux/resources/esp32</targetPath>
-                <directory>resources/esp32</directory>
+                <targetPath>${basedir}/installers/linux/resources/megaavr</targetPath>
+                <directory>resources/megaavr</directory>
             </resource>
             <resource>
                 <targetPath>${basedir}/installers/linux</targetPath>
@@ -172,8 +172,12 @@
                 <directory>resources/windows/arduino</directory>
             </resource>
             <resource>
-                <targetPath>${basedir}/installers/windows/resources/esp32</targetPath>
-                <directory>resources/esp32</directory>
+                <targetPath>${basedir}/installers/windows/resources/windows/esp32</targetPath>
+                <directory>resources/windows/esp32</directory>
+            </resource>
+            <resource>
+                <targetPath>${basedir}/installers/windows/resources/megaavr</targetPath>
+                <directory>resources/megaavr</directory>
             </resource>
             <resource>
                 <targetPath>${basedir}/installers/windows</targetPath>
@@ -189,8 +193,8 @@
                 <directory>resources/osx/arduino</directory>
             </resource>
             <resource>
-                <targetPath>${basedir}/installers/osx/resources/esp32</targetPath>
-                <directory>resources/esp32</directory>
+                <targetPath>${basedir}/installers/osx/resources/megaavr</targetPath>
+                <directory>resources/megaavr</directory>
             </resource>
             <resource>
                 <targetPath>${basedir}/installers/osx</targetPath>

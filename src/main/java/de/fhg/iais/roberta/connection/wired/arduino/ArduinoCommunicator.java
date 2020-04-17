@@ -151,6 +151,7 @@ class ArduinoCommunicator {
             }
 
             LOG.info("Starting to upload program {} to {}{}", filePath, portPath, portName);
+            LOG.info("Upload command used: {}", args);
 
             ProcessBuilder processBuilder = new ProcessBuilder(args);
             processBuilder.inheritIO();
