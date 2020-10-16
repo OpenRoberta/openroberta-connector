@@ -179,12 +179,16 @@ public class DeviceIdEditorController implements IController {
                 entry.add((String) DeviceIdEditorController.this.deviceIdEditorView.getTblIds().getModel().getValueAt(row, 0));
                 entry.add((String) DeviceIdEditorController.this.deviceIdEditorView.getTblIds().getModel().getValueAt(row, 1));
 
-                WiredRobotType wiredRobotType = (WiredRobotType) DeviceIdEditorController.this.deviceIdEditorView.getTblIds().getModel().getValueAt(row, 2);
-                if ( wiredRobotType == WiredRobotType.NONE ) {
+                Object value = DeviceIdEditorController.this.deviceIdEditorView.getTblIds().getModel().getValueAt(row, 2);
+                if (value.equals("")) {
                     noneRowIndex = row;
+                } else {
+                    WiredRobotType wiredRobotType = (WiredRobotType) value;
+                    if ( wiredRobotType == WiredRobotType.NONE ) {
+                        noneRowIndex = row;
+                    }
+                    entry.add(wiredRobotType.toString());
                 }
-
-                entry.add(wiredRobotType.toString());
 
                 wiredRobotIdEntries.add(entry);
             }
