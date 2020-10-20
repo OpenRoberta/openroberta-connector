@@ -12,6 +12,7 @@
 # Micro:bit/Calliope mini: microbit
 # Arduino Uno Wifi Rev2:   unowifirev2
 # Bionics4Education:       festobionic
+# Arduino Nano 33 BLE:     nano33ble
 
 2341,0043,uno
 2A03,0043,uno
@@ -23,3 +24,5 @@
 0D28,0204,microbit
 03EB,2145,unowifirev2
 0403,6015,festobionic
+2341,005A,nano33ble
+# TODO 2341,805A,nano33ble for serial/normal mode

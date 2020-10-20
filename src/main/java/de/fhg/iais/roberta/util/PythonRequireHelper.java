@@ -38,7 +38,7 @@ public final class PythonRequireHelper {
     public static String requireEsptool() {
         // For Windows esptool is bundled with the application
         if (SystemUtils.IS_OS_WINDOWS) {
-            return PropertyHelper.getInstance().getProperty("espPath");
+            return PropertyHelper.getInstance().getProperty("esptoolPath");
         }
         String esptoolCmd = "esptool.py";
         Pair<Boolean, String> esptoolOutput = runCommand(esptoolCmd, "version");

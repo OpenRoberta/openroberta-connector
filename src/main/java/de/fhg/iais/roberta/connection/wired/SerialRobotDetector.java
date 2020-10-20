@@ -68,6 +68,7 @@ public class SerialRobotDetector implements IDetector {
                     case MBOT:
                     case UNOWIFIREV2:
                     case FESTOBIONIC:
+                    case NANO33BLE:
                         detectedRobots.add(new Arduino(wiredRobotType, device.port));
                         break;
                     case MICROBIT:

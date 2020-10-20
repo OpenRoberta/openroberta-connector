@@ -26,8 +26,9 @@ import static de.fhg.iais.roberta.util.PythonRequireHelper.requireEsptool;
 class ArduinoCommunicator {
     private static final Logger LOG = LoggerFactory.getLogger(ArduinoCommunicator.class);
 
-    private final String avrPath;
-    private final String avrConfPath;
+    private final String avrdudePath;
+    private final String avrdudeConfPath;
+    private final String bossacPath;
     private String esptoolPath = "";
 
     private final IWiredRobot robot;
@@ -35,20 +36,25 @@ class ArduinoCommunicator {
     ArduinoCommunicator(IWiredRobot robot) {
         this.robot = robot;
         if ( SystemUtils.IS_OS_WINDOWS ) {
-            this.avrPath = PropertyHelper.getInstance().getProperty("WinPath");
-            this.avrConfPath = PropertyHelper.getInstance().getProperty("WinConfPath");
+            this.avrdudePath = PropertyHelper.getInstance().getProperty("avrdudeWinPath");
+            this.avrdudeConfPath = PropertyHelper.getInstance().getProperty("avrdudeWinConfPath");
+            this.bossacPath = PropertyHelper.getInstance().getProperty("bossacWinPath");
         } else if ( SystemUtils.IS_OS_LINUX ) {
             if ( SystemUtils.OS_ARCH.equals("i386") ) {
-                this.avrPath = PropertyHelper.getInstance().getProperty("LinPath32");
+                this.avrdudePath = PropertyHelper.getInstance().getProperty("avrdudeLinPath32");
             } else if ( SystemUtils.OS_ARCH.equals("arm") ) {
-                this.avrPath = PropertyHelper.getInstance().getProperty("LinPathArm32");
+                this.avrdudePath = PropertyHelper.getInstance().getProperty("avrdudeLinPathArm32");
             } else {
-                this.avrPath = PropertyHelper.getInstance().getProperty("LinPath64");
+                this.avrdudePath = PropertyHelper.getInstance().getProperty("avrdudeLinPath64");
             }
-            this.avrConfPath = PropertyHelper.getInstance().getProperty("LinConfPath");
+            this.avrdudeConfPath = PropertyHelper.getInstance().getProperty("avrdudeLinConfPath");
+            this.bossacPath = null; // TODO add linux bossac
+        } else if ( SystemUtils.IS_OS_MAC ) {
+            this.avrdudePath = PropertyHelper.getInstance().getProperty("avrdudeOsXPath");
+            this.avrdudeConfPath = PropertyHelper.getInstance().getProperty("avrdudeMacConfPath");
+            this.bossacPath = null; // TODO add mac bossac
         } else {
-            this.avrPath = PropertyHelper.getInstance().getProperty("OsXPath");
-            this.avrConfPath = PropertyHelper.getInstance().getProperty("MacConfPath");
+            throw new UnsupportedOperationException("Operating system not supported!");
         }
         if ( this.robot.getType() == WiredRobotType.FESTOBIONIC) {
             this.esptoolPath = requireEsptool();
@@ -81,10 +87,10 @@ class ArduinoCommunicator {
         }
         try {
             List<String> args = new ArrayList<>();
-            args.add(this.avrPath); // path to executable
+            args.add(this.avrdudePath); // path to executable
             args.add("-v"); // verbose output
             args.add("-D"); // disables auto erase for flashing
-            args.add("-C" + this.avrConfPath); // specific config file
+            args.add("-C" + this.avrdudeConfPath); // specific config file
             args.add("-Uflash:w:" + filePath + ":i"); // the program to flash
             switch ( this.robot.getType() ) {
                 case UNO:
@@ -145,6 +151,20 @@ class ArduinoCommunicator {
                     if (Files.exists(tempDirectory.resolve(zipFile.getName().split("\\.")[0] + ".spiffs.bin"))) {
                         args.add("0x291000"); args.add(tempDirectory.normalize() + "/" + zipFile.getName().split("\\.")[0] + ".spiffs.bin");
                     }
+                    break;
+                case NANO33BLE:
+                    // TODO add reset & com rediscovery -> helper function in SerialRobotDetector?
+                    args.clear();
+                    args.add(this.bossacPath);
+                    // bossac.exe -d --port=COM5 -U -i -e -w C:\Users\boonw\AppData\Local\Temp\arduino_build_94650/Blink.ino.bin -R
+                    args.add("-d");
+                    args.add("--port=" + portPath + portName);
+                    args.add("-U");
+                    args.add("-i");
+                    args.add("-e");
+                    args.add("-w");
+                    args.add(filePath);
+                    args.add("-R");
                     break;
                 default:
                     throw new IllegalStateException("Robot type not supported");
