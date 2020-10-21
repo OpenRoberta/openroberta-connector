@@ -16,6 +16,7 @@ create_linux() {
     chmod +x OpenRobertaConnector/resources/linux/arduino/avrdude-32
     chmod +x OpenRobertaConnector/resources/linux/arduino/avrdude-64
     chmod +x OpenRobertaConnector/resources/linux/arduino/avrdude-arm32
+    chmod +x OpenRobertaConnector/resources/linux/arduino/bossac
     tar -zcvf OpenRobertaConnectorLinux-$CURRENT_TAG.tar.gz OpenRobertaConnector
     rm -rf OpenRobertaConnector
 }

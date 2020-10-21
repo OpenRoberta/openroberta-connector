@@ -1,9 +1,6 @@
 package de.fhg.iais.roberta.connection.wired;
 
-import org.apache.commons.codec.Charsets;
-import org.apache.commons.lang3.SystemUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static de.fhg.iais.roberta.util.WiredRobotIdFileHelper.load;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -21,14 +18,17 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.codec.Charsets;
+import org.apache.commons.lang3.SystemUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.fhg.iais.roberta.connection.IDetector;
 import de.fhg.iais.roberta.connection.IRobot;
 import de.fhg.iais.roberta.connection.wired.arduino.Arduino;
 import de.fhg.iais.roberta.connection.wired.microbit.Microbit;
 import de.fhg.iais.roberta.util.Pair;
 import de.fhg.iais.roberta.util.SerialDevice;
-
-import static de.fhg.iais.roberta.util.WiredRobotIdFileHelper.load;
 
 public class SerialRobotDetector implements IDetector {
     private static final Logger LOG = LoggerFactory.getLogger(SerialRobotDetector.class);
@@ -85,6 +85,19 @@ public class SerialRobotDetector implements IDetector {
         return detectedRobots;
     }
 
+    public static String getPortOfConnectedRobotType(WiredRobotType wiredRobotTypeToLookup) {
+        Pair<Map<SerialDevice, WiredRobotType>, Map<Integer, String>> loadIdsResult = load();
+        Map<SerialDevice, WiredRobotType> supportedRobots = loadIdsResult.getFirst();
+        List<SerialDevice> devices = getUsbDevices();
+        for ( SerialDevice device : devices ) {
+            WiredRobotType wiredRobotType = supportedRobots.get(device);
+            if ( wiredRobotType == wiredRobotTypeToLookup ) {
+                return device.port;
+            }
+        }
+        return null;
+    }
+
     public static List<SerialDevice> getUsbDevices() {
         if ( SystemUtils.IS_OS_LINUX ) {
             LOG.debug("Linux detected");
@@ -123,10 +136,11 @@ public class SerialRobotDetector implements IDetector {
                             List<File> subSubDirs = Arrays.asList(subDir.listFiles());
 
                             // look for a directory containing tty, in case its only called tty look into it to find the real name
-                            subSubDirs.stream()
-                                      .filter(file -> file.getName().contains("tty"))
-                                      .findFirst()
-                                      .ifPresent(file -> port[0] = file.getName().equals("tty") ? file.list()[0] : file.getName());
+                            subSubDirs
+                                .stream()
+                                .filter(file -> file.getName().contains("tty"))
+                                .findFirst()
+                                .ifPresent(file -> port[0] = file.getName().equals("tty") ? file.list()[0] : file.getName());
                         }
                     }
 
@@ -145,8 +159,7 @@ public class SerialRobotDetector implements IDetector {
     private static List<SerialDevice> getUsbDevicesWindows() {
         List<SerialDevice> devices = new ArrayList<>(5);
 
-        ProcessBuilder
-            processBuilder =
+        ProcessBuilder processBuilder =
             new ProcessBuilder("powershell.exe", "-Command", "Get-WmiObject -Query \\\"SELECT Name, DeviceID FROM Win32_PnPEntity\\\"");
         try {
             Process pr = processBuilder.start();
@@ -154,7 +167,7 @@ public class SerialRobotDetector implements IDetector {
             pr.getOutputStream().close();
 
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(pr.getInputStream(), Charsets.UTF_8));
-                 BufferedReader errReader = new BufferedReader(new InputStreamReader(pr.getErrorStream(), Charsets.UTF_8))) {
+                BufferedReader errReader = new BufferedReader(new InputStreamReader(pr.getErrorStream(), Charsets.UTF_8))) {
                 String result = reader.lines().collect(Collectors.joining("\n"));
                 // Also read the error stream to avoid hanging
                 String errors = errReader.lines().collect(Collectors.joining("\n"));
@@ -181,9 +194,12 @@ public class SerialRobotDetector implements IDetector {
         List<SerialDevice> devices = new ArrayList<>(5);
         try {
             Runtime rt = Runtime.getRuntime();
-            String[] commands = {
-                "/bin/sh", "-c", "ioreg -r -c IOUSBHostDevice -l | grep -B30 IOTTYDevice"
-            };
+            String[] commands =
+                {
+                    "/bin/sh",
+                    "-c",
+                    "ioreg -r -c IOUSBHostDevice -l | grep -B30 IOTTYDevice"
+                };
             Process pr = rt.exec(commands);
 
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(pr.getInputStream(), Charsets.UTF_8))) {

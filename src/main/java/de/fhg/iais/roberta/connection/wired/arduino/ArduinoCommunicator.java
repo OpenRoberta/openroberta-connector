@@ -1,10 +1,6 @@
 package de.fhg.iais.roberta.connection.wired.arduino;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.SystemUtils;
-import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static de.fhg.iais.roberta.util.PythonRequireHelper.requireEsptool;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,13 +11,18 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.SystemUtils;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.fhg.iais.roberta.connection.wired.IWiredRobot;
+import de.fhg.iais.roberta.connection.wired.SerialRobotDetector;
 import de.fhg.iais.roberta.connection.wired.WiredRobotType;
 import de.fhg.iais.roberta.util.Pair;
 import de.fhg.iais.roberta.util.PropertyHelper;
 import de.fhg.iais.roberta.util.ZipHelper;
-
-import static de.fhg.iais.roberta.util.PythonRequireHelper.requireEsptool;
 
 class ArduinoCommunicator {
     private static final Logger LOG = LoggerFactory.getLogger(ArduinoCommunicator.class);
@@ -48,7 +49,7 @@ class ArduinoCommunicator {
                 this.avrdudePath = PropertyHelper.getInstance().getProperty("avrdudeLinPath64");
             }
             this.avrdudeConfPath = PropertyHelper.getInstance().getProperty("avrdudeLinConfPath");
-            this.bossacPath = null; // TODO add linux bossac
+            this.bossacPath = PropertyHelper.getInstance().getProperty("bossacLinPath");
         } else if ( SystemUtils.IS_OS_MAC ) {
             this.avrdudePath = PropertyHelper.getInstance().getProperty("avrdudeOsXPath");
             this.avrdudeConfPath = PropertyHelper.getInstance().getProperty("avrdudeMacConfPath");
@@ -56,7 +57,7 @@ class ArduinoCommunicator {
         } else {
             throw new UnsupportedOperationException("Operating system not supported!");
         }
-        if ( this.robot.getType() == WiredRobotType.FESTOBIONIC) {
+        if ( this.robot.getType() == WiredRobotType.FESTOBIONIC ) {
             this.esptoolPath = requireEsptool();
         }
     }
@@ -81,114 +82,149 @@ class ArduinoCommunicator {
     }
 
     Pair<Integer, String> uploadFile(String portName, String filePath) {
-        String portPath = "/dev/";
-        if ( SystemUtils.IS_OS_WINDOWS ) {
-            portPath = "";
-        }
+        portName = (SystemUtils.IS_OS_WINDOWS ? "" : "/dev/") + portName; // to hide the parameter, which should not be used
+        ArgsAdder args = new ArgsAdder();
         try {
-            List<String> args = new ArrayList<>();
-            args.add(this.avrdudePath); // path to executable
-            args.add("-v"); // verbose output
-            args.add("-D"); // disables auto erase for flashing
-            args.add("-C" + this.avrdudeConfPath); // specific config file
-            args.add("-Uflash:w:" + filePath + ":i"); // the program to flash
             switch ( this.robot.getType() ) {
                 case UNO:
                 case NANO:
                 case BOTNROLL:
                 case MBOT:
-                    args.add("-patmega328p"); // part number
-                    args.add("-carduino"); // programmer
-                    args.add("-P" + portPath + portName); // port of the device
-                    break;
+                    addAvrDudeStdParams(args, avrdudePath, avrdudeConfPath, filePath, portName);
+                    args.add("-patmega328p", "-carduino");
+                    return runProcessUntilTermination(args, true);
                 case MEGA:
-                    args.add("-patmega2560"); // part number
-                    args.add("-cwiring"); // programmer
-                    args.add("-P" + portPath + portName); // port of the device
-                    break;
+                    addAvrDudeStdParams(args, avrdudePath, avrdudeConfPath, filePath, portName);
+                    args.add("-patmega2560", "-cwiring");
+                    return runProcessUntilTermination(args, true);
                 case BOB3:
-                    args.add("-patmega88"); // part number
-                    args.add("-cavrisp2"); // programmer
-                    args.add("-e"); // enable erase
-                    args.add("-P" + portPath + portName); // port of the device
-                    break;
+                    addAvrDudeStdParams(args, avrdudePath, avrdudeConfPath, filePath, portName);
+                    args.add("-patmega88", "-cavrisp2", "-e");
+                    return runProcessUntilTermination(args, true);
                 case UNOWIFIREV2:
-                    args.add("-patmega4809"); // part number
-                    args.add("-cxplainedmini_updi"); // programmer
-                    args.add("-e"); // enable erase
-                    args.add("-Pusb"); // port of the device
-                    args.add("-Ufuse2:w:0x01:m"); // program fuses
-                    args.add("-Ufuse5:w:0xC9:m"); // program fuses
-                    args.add("-Ufuse8:w:0x02:m"); // program fuses
+                    addAvrDudeStdParams(args, avrdudePath, avrdudeConfPath, filePath, "usb");
+                    args.add("-patmega4809", "-cxplainedmini_updi", "-e");
+                    args.add("-Ufuse2:w:0x01:m", "-Ufuse5:w:0xC9:m", "-Ufuse8:w:0x02:m"); // program fuses
                     args.add("-Uflash:w:" + PropertyHelper.getInstance().getProperty("megaavrPath") + "/bootloaders/atmega4809_uart_bl.hex:i"); // additional bootloader
-                    break;
+                    return runProcessUntilTermination(args, true);
                 case FESTOBIONIC:
-                    // files are zipped serverside and sent to the Connector
-                    // here the files are unzipped and esptool is called to flash the four files
+                    LOG.info("Starting to upload program {} to {}", filePath, portName);
+                    // files are zipped serverside and sent to the Connector, unzipped here and flashed by the esptool
                     File zipFile = Paths.get(filePath).toFile();
                     Path tempDirectory = Files.createTempDirectory(null);
                     ZipHelper.unzipFiles(Paths.get(filePath), tempDirectory);
-                    args.clear(); // reset previous arguments, festo has specific ESP ones
+
                     args.add(this.esptoolPath);
-                    args.add("--chip"); args.add("esp32");
-                    args.add("--port"); args.add( portPath + portName);
-                    if (SystemUtils.IS_OS_MAC) {
-                        args.add("--baud"); args.add( "115200");
-                    } else {
-                        args.add("--baud"); args.add( "921600");
-                    }
-                    args.add("--before"); args.add( "default_reset");
-                    args.add("--after"); args.add( "hard_reset");
+                    args.add("--chip", "esp32");
+                    args.add("--port", portName);
+                    args.add("--baud", SystemUtils.IS_OS_MAC ? "115200" : "921600");
+                    args.add("--before", "default_reset");
+                    args.add("--after", "hard_reset");
                     args.add("write_flash");
                     args.add("-z");
-                    args.add("--flash_mode"); args.add( "dio");
-                    args.add("--flash_freq"); args.add( "80m");
-                    args.add("--flash_size"); args.add( "detect");
-                    args.add("0xe000"); args.add(tempDirectory.normalize() + "/boot_app0.bin");
-                    args.add("0x1000"); args.add(tempDirectory.normalize() + "/bootloader_qio_80m.bin");
-                    args.add("0x10000"); args.add(tempDirectory.normalize() + "/" + zipFile.getName().split("\\.")[0] + ".bin");
-                    args.add("0x8000"); args.add(tempDirectory.normalize() + "/" + zipFile.getName().split("\\.")[0] + ".partitions.bin");
-                    if (Files.exists(tempDirectory.resolve(zipFile.getName().split("\\.")[0] + ".spiffs.bin"))) {
-                        args.add("0x291000"); args.add(tempDirectory.normalize() + "/" + zipFile.getName().split("\\.")[0] + ".spiffs.bin");
+                    args.add("--flash_mode", "dio");
+                    args.add("--flash_freq", "80m");
+                    args.add("--flash_size", "detect");
+                    Path tempDirN = tempDirectory.normalize();
+                    String zipFilePrefix = zipFile.getName().split("\\.")[0];
+                    Path zipFileSpiffs = tempDirN.resolve(zipFilePrefix + ".spiffs.bin");
+                    args.add("0xe000", tempDirN.resolve("boot_app0.bin").toString());
+                    args.add("0x1000", tempDirN.resolve("bootloader_qio_80m.bin").toString());
+                    args.add("0x10000", tempDirN.resolve(zipFilePrefix + ".bin").toString());
+                    args.add("0x8000", tempDirN.resolve(zipFilePrefix + ".partitions.bin").toString());
+                    if ( Files.exists(zipFileSpiffs) ) {
+                        args.add("0x291000", zipFileSpiffs.toString());
                     }
-                    break;
+                    return runProcessUntilTermination(args, true);
                 case NANO33BLE:
-                    // TODO add reset & com rediscovery -> helper function in SerialRobotDetector?
-                    args.clear();
+                    LOG.info("Starting to upload program {}, port of running mode {} ...", filePath, portName);
+                    ArgsAdder gotoFlash = new ArgsAdder();
+                    if ( SystemUtils.IS_OS_WINDOWS ) {
+                        gotoFlash.add("mode.com", portName, "1200,o,8,1");
+                    } else {
+                        gotoFlash.add("stty", "-F", portName, "1200");
+                    }
+                    runProcessUntilTermination(gotoFlash, true);
+                    Thread.sleep(500);
+                    String portForFlashing =
+                        (SystemUtils.IS_OS_WINDOWS ? "" : "/dev/") + SerialRobotDetector.getPortOfConnectedRobotType(WiredRobotType.NANO33BLE);
+                    LOG.info("... port of flashing mode {} ", portForFlashing);
                     args.add(this.bossacPath);
-                    // bossac.exe -d --port=COM5 -U -i -e -w C:\Users\boonw\AppData\Local\Temp\arduino_build_94650/Blink.ino.bin -R
-                    args.add("-d");
-                    args.add("--port=" + portPath + portName);
-                    args.add("-U");
-                    args.add("-i");
-                    args.add("-e");
-                    args.add("-w");
-                    args.add(filePath);
-                    args.add("-R");
-                    break;
+                    args.add("-d", "--port=" + portForFlashing, "-U", "-i", "-e", "-w", filePath, "-R");
+                    return runProcessUntilTermination(args, true);
                 default:
                     throw new IllegalStateException("Robot type not supported");
             }
+        } catch ( Exception e ) {
+            LOG.error("Error while uploading to arduino: {}", e.getMessage());
+            return new Pair<>(1, "Something went wrong while uploading the file.");
+        }
+    }
 
-            LOG.info("Starting to upload program {} to {}{}", filePath, portPath, portName);
-            LOG.info("Upload command used: {}", args);
+    /**
+     * add the avrdudePath and some standard parameter to the arg list
+     *
+     * @param args to this list the arguments are appended
+     * @param avrdudePath path to the avrdude binary
+     * @param avrdudeConfPath path to the configuration file of avrdude
+     * @param filePath path to the binary generated by the lab
+     */
+    private static void addAvrDudeStdParams(ArgsAdder args, String avrdudePath, String avrdudeConfPath, String filePath, String portName) {
+        LOG.info("Starting to upload program {} to {}", filePath, portName);
+        args.add(avrdudePath); // path to executable
+        args.add("-v"); // verbose output
+        args.add("-D"); // disables auto erase for flashing
+        args.add("-C" + avrdudeConfPath); // specific config file
+        args.add("-Uflash:w:" + filePath + ":i"); // the program to flash
+        args.add("-P" + portName);
+    }
 
-            ProcessBuilder processBuilder = new ProcessBuilder(args);
+    private static Pair<Integer, String> runProcessUntilTermination(ArgsAdder args, boolean log) {
+        try {
+            if ( log ) {
+                LOG.info("command to be executed: {}", args.toString());
+            }
+
+            ProcessBuilder processBuilder = new ProcessBuilder(args.getArgs());
             processBuilder.inheritIO();
             Process p = processBuilder.start();
             int eCode = p.waitFor();
             String errorOutput = IOUtils.toString(p.getErrorStream(), Charset.defaultCharset());
-            if ( eCode == 0 ) {
-                LOG.info("Program uploaded successfully");
-            } else {
-                LOG.error("Program was unable to be uploaded: {}, {}", eCode, errorOutput);
+            if ( log ) {
+                if ( eCode > 0 ) {
+                    LOG.error("process to flash an arduino failed: {}, {}", eCode, errorOutput);
+                } else if ( log ) {
+                    LOG.info("command execution was successful");
+                }
             }
-            LOG.debug("Exit code {}", eCode);
-
             return new Pair<>(eCode, errorOutput);
         } catch ( IOException | InterruptedException e ) {
-            LOG.error("Error while uploading to arduino: {}", e.getMessage());
-            return new Pair<>(1, "Something went wrong while uploading the file.");
+            String msg = "Error while running a process to flash an arduino: " + e.getMessage();
+            LOG.error(msg);
+            return new Pair<>(1, msg);
+        }
+    }
+
+    private static class ArgsAdder {
+        private final List<String> args = new ArrayList<>();
+        public ArgsAdder add(String... args) {
+            for ( String arg : args ) {
+                this.args.add(arg);
+            }
+            return this;
+        }
+
+        public List<String> getArgs() {
+            return args;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            for ( String arg : args ) {
+                sb.append(arg).append(' ');
+            }
+            return sb.toString();
         }
     }
 }

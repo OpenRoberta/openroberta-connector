@@ -5,6 +5,9 @@ pom.xml.releaseBackup
 
 .idea/
 *.iml
+.classpath
+.project
+.settings/
 
 customaddresses.txt
 /arduino-ids.txt

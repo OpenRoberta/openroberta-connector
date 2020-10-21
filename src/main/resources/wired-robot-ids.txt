@@ -22,7 +22,10 @@
 10C4,EA60,ardu
 1A86,7523,mbot
 0D28,0204,microbit
+1366,1025,microbit
 03EB,2145,unowifirev2
 0403,6015,festobionic
+
+# nano33ble: 005A for flashing, 805A for serial communication
 2341,005A,nano33ble
-# TODO 2341,805A,nano33ble for serial/normal mode
+2341,805A,nano33ble
