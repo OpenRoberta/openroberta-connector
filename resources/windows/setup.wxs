@@ -7,7 +7,7 @@
     <?define Codepage="1252"?>
     <?define ProductVersion="${version}"?>
 
-    <?define WDKDirectory="C:\Program Files (x86)\Windows Kits\8.1\"?>
+    <?define WDKDirectory="C:\Program Files (x86)\Windows Kits\8.0\"?>
 
     <Product
         Name         = '$(var.Name)'

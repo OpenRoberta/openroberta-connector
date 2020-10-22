@@ -36,7 +36,7 @@ before_deploy:
 # - if [ $TRAVIS_OS_NAME = 'windows' ]; then choco install wixtoolset; fi
 - if [ $TRAVIS_OS_NAME = 'windows' ]; then choco install nuget.commandline; fi
 - if [ $TRAVIS_OS_NAME = 'windows' ]; then nuget install WiX.Toolset -Version 3.9.1208; fi
-- if [ $TRAVIS_OS_NAME = 'windows' ]; then curl 'https://download.microsoft.com/download/0/8/C/08C7497F-8551-4054-97DE-60C0E510D97A/wdk/wdksetup.exe' --output wdksetup.exe; fi
+- if [ $TRAVIS_OS_NAME = 'windows' ]; then curl 'http://download.microsoft.com/download/2/4/C/24CA7FB3-FF2E-4DB5-BA52-62A4399A4601/wdk/wdksetup.exe' --output wdksetup.exe; fi
 - if [ $TRAVIS_OS_NAME = 'windows' ]; then ./wdksetup.exe //features + //q //norestart //ceip off; fi
 - cd installers
 - ./release.sh $TRAVIS_OS_NAME
