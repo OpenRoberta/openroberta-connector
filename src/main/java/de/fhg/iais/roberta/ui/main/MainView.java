@@ -1,20 +1,26 @@
 package de.fhg.iais.roberta.ui.main;
 
+import de.fhg.iais.roberta.connection.IDetector;
+import de.fhg.iais.roberta.connection.IRobot.ConnectionType;
+import de.fhg.iais.roberta.connection.wired.RndisDetector;
+import de.fhg.iais.roberta.connection.wired.SerialRobotDetector;
+import de.fhg.iais.roberta.connection.wireless.MdnsDetector;
+import de.fhg.iais.roberta.connection.wireless.RaspberrypiDetector;
+import de.fhg.iais.roberta.main.UpdateInfo.Status;
+import de.fhg.iais.roberta.ui.OraButton;
+import de.fhg.iais.roberta.ui.OraToggleButton;
+import de.fhg.iais.roberta.ui.UiState;
+import de.fhg.iais.roberta.util.ComboItemRobotType;
+import de.fhg.iais.roberta.util.IOraUiListener;
+import de.fhg.iais.roberta.util.Pair;
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.Point;
+import javax.swing.*;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.text.DefaultEditorKit;
+import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -23,75 +29,50 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.InputMap;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.KeyStroke;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingConstants;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.WindowConstants;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.text.DefaultEditorKit;
-
-import de.fhg.iais.roberta.connection.IRobot.ConnectionType;
-import de.fhg.iais.roberta.main.UpdateInfo.Status;
-import de.fhg.iais.roberta.ui.OraButton;
-import de.fhg.iais.roberta.ui.OraToggleButton;
-import de.fhg.iais.roberta.ui.UiState;
-import de.fhg.iais.roberta.util.IOraUiListener;
-import de.fhg.iais.roberta.util.Pair;
-
 import static de.fhg.iais.roberta.ui.main.ImageHelper.getGif;
 
 public class MainView extends JFrame {
-    private static final Logger LOG = LoggerFactory.getLogger(MainView.class);
-
-    private static final long serialVersionUID = 1L;
-    private static final int ADDITIONAL_ADVANCED_HEIGHT = 62;
-
+    public static final Color BUTTON_BACKGROUND_COLOR = Color.decode("#b7d032"); // light lime green
+    public static final Color HOVER_COLOR = Color.decode("#afca04"); // slightly darker lime green
+    public static final Color BACKGROUND_COLOR = Color.WHITE;
+    public static final Color TABLE_HEADER_BACKGROUND_COLOR = Color.decode("#dddddd");
     static final String CMD_EXIT = "exit";
     static final String CMD_CHECK_FOR_UPDATES = "updateConnector";
     static final String CMD_ABOUT = "about";
     static final String CMD_SERIAL = "serial";
     static final String CMD_SCAN = "scan";
-    static final String CMD_CUSTOMADDRESS = "customaddress";
+    static final String CMD_STOP_SCAN = "stopScan";
+    static final String CMD_SELECT_ROBOTTYPE = "selectRobotType";
     static final String CMD_CONNECT = "connect";
     static final String CMD_DISCONNECT = "disconnect";
     static final String CMD_HELP = "help";
     static final String CMD_ID_EDITOR = "id_editor";
     static final String CMD_COPY = "copy";
 
+    private static final Logger LOG = LoggerFactory.getLogger(MainView.class);
+    private static final long serialVersionUID = 1L;
     private static final Color BUTTON_FOREGROUND_COLOR = Color.WHITE;
-    public static final Color BUTTON_BACKGROUND_COLOR = Color.decode("#b7d032"); // light lime green
-    public static final Color HOVER_COLOR = Color.decode("#afca04"); // slightly darker lime green
-    public static final Color BACKGROUND_COLOR = Color.WHITE;
-    public static final Color TABLE_HEADER_BACKGROUND_COLOR = Color.decode("#dddddd");
-
     private static final Font FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 14);
     private static final Font MENU_FONT = FONT.deriveFont(12.0f);
+    // - Robot -
+    private static final String CARD_ROBOT = "robot";
+    // - Robots -
+    private static final String CARD_ROBOTS = "robots";
+    // - Token Server -
+    private static final String CARD_TOKEN_SERVER = "tokenServer";
+    // - Top Empty -
+    private static final String CARD_TOP_EMPTY = "topEmpty";
+    // - Address -
+    private static final String CARD_ADDRESS = "address";
+    // - Nao Login -
+    private static final String CARD_SSH_LOGIN = "sshLogin";
+    // Resources
+    private static final String FILENAME_CLIPBOARD = "clipboard.png";
 
     static {
         try {
             UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-        } catch ( ClassNotFoundException | IllegalAccessException | UnsupportedLookAndFeelException | InstantiationException e ) {
+        } catch (ClassNotFoundException | IllegalAccessException | UnsupportedLookAndFeelException | InstantiationException e) {
             LOG.error("Error when setting up the look and feel: {}", e.getMessage());
         }
         UIManager.put("MenuBar.background", BACKGROUND_COLOR);
@@ -137,7 +118,7 @@ public class MainView extends JFrame {
         UIManager.put("ScrollPane.background", BACKGROUND_COLOR);
 
         // CMD + C support for copying on Mac OS
-        if ( SystemUtils.IS_OS_MAC_OSX ) {
+        if (SystemUtils.IS_OS_MAC_OSX) {
             InputMap im = (InputMap) UIManager.get("TextField.focusInputMap");
             im.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.META_DOWN_MASK), DefaultEditorKit.copyAction);
             im.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.META_DOWN_MASK), DefaultEditorKit.pasteAction);
@@ -147,116 +128,81 @@ public class MainView extends JFrame {
 
     // ---- Menu ----
     private final JMenuBar menu = new JMenuBar();
-
     private final JMenu menuFile = new JMenu();
     private final JMenuItem menuItemIdEditor = new JMenuItem();
     private final JMenuItem menuItemClose = new JMenuItem();
-
     private final JMenu menuArduino = new JMenu();
     private final JMenuItem menuItemSerial = new JMenuItem();
-
     private final JMenu menuInfo = new JMenu();
     private final JMenuItem menuItemUpdate = new JMenuItem();
     private final JMenuItem menuItemAbout = new JMenuItem();
-
     private final RobotButton butRobot = new RobotButton();
-
     // --- Center ---
     private final JPanel pnlCenter = new JPanel();
-
     private final JSeparator separator = new JSeparator();
-
     // -- Top --
     private final JPanel pnlTopContainer = new JPanel();
-
-    // - Robot -
-    private static final String CARD_ROBOT = "robot";
     private final JPanel pnlRobot = new JPanel();
-
     private final JLabel lblRobotNameInfo = new JLabel();
     private final JLabel lblRobotName = new JLabel();
-
-    // - Robots -
-    private static final String CARD_ROBOTS = "robots";
     private final JPanel pnlRobots = new JPanel();
-
     private final JPanel pnlAvailable = new JPanel();
     private final JLabel lblAvailable = new JLabel();
-
     private final JScrollPane scrollPaneRobots = new JScrollPane();
-    private final JList<String> listRobots = new JList<>(new String[] { "" });
-
-    // - Token Server -
-    private static final String CARD_TOKEN_SERVER = "tokenServer";
+    private final JList<String> listRobots = new JList<>(new String[]{""});
     private final JPanel pnlTokenServer = new JPanel();
-
     private final JPanel pnlToken = new JPanel();
     private final JTextField txtFldPreToken = new JTextField();
     private final JTextField txtFldToken = new JTextField();
     private final OraButton butCopy = new OraButton();
-
     private final JPanel pnlServer = new JPanel();
     private final JTextField txtFldServer = new JTextField();
-
-    // - Top Empty -
-    private static final String CARD_TOP_EMPTY = "topEmpty";
-
     // -- Gif --
     private final JPanel pnlGif = new JPanel();
-
     // -- Info --
     private final JTextArea txtAreaInfo = new JTextArea();
-
+    // -- Robot Type --
+    private final JPanel pnlRobotType = new JPanel();
+    private final JLabel lblRobotType = new JLabel();
+    private final JComboBox<ComboItemRobotType> cmbRobotType = new JComboBox<>();
     // -- Buttons --
     private final JPanel pnlButtons = new JPanel();
     private final OraToggleButton butConnect = new OraToggleButton();
-    private final OraToggleButton butScan = new OraToggleButton();
+    private final OraButton butScan = new OraButton();
     private final OraButton butClose = new OraButton();
-
     // -- Custom --
     private final JPanel pnlCustomContainer = new JPanel();
-
-    // - Address -
-    private static final String CARD_ADDRESS = "address";
+    private final JTabbedPane tabCustomPain = new JTabbedPane();
     private final JPanel pnlAddress = new JPanel();
-
     private final JPanel pnlCustomInfo = new JPanel();
     private final JButton butCustom = new JButton();
-
     private final JPanel pnlCustomHeading = new JPanel();
     private final JTextField txtFldCustomHeading = new JTextField();
-
     private final JPanel pnlCustomAddress = new JPanel();
     private final JLabel lblCustomIp = new JLabel();
     private final JComboBox<String> cmbBoxCustomIp = new JComboBox<>();
     private final JLabel lblCustomPort = new JLabel();
     private final JComboBox<String> cmbBoxCustomPort = new JComboBox<>();
-
-    // - Nao Login -
-    private static final String CARD_NAO_LOGIN = "naoLogin";
-    private final JPanel pnlNaoLogin = new JPanel();
-    private final JLabel lblNaoPassword = new JLabel();
-    private final JTextField txtFldNaoPassword = new JTextField();
-
-    // - Custom Empty -
-    private static final String CARD_CUSTOM_EMPTY = "customEmpty";
-
-    // Resources
-    private static final String FILENAME_UNCHECKED = "input-unchecked.png";
-    private static final String FILENAME_CHECKED = "input-checked.png";
-    private static final String FILENAME_CLIPBOARD = "clipboard.png";
-
+    private final JPanel pnlSshLogin = new JPanel();
+    private final JLabel lblSshIpAddress = new JLabel();
+    private final JLabel lblSshUserName = new JLabel();
+    private final JLabel lblSshPassword = new JLabel();
+    private final JLabel lblSshPort = new JLabel();
+    private final JTextField txtFldSshIpAddress = new JTextField();
+    private final JTextField txtFldSshUserName = new JTextField();
+    private final JTextField txtFldSshPassword = new JTextField();
+    private final JTextField txtFldSshPort = new JTextField();
     private final ResourceBundle messages;
 
     private boolean toggle = true;
-    private boolean customMenuVisible;
+
 
     MainView(ResourceBundle messages, IOraUiListener listener) {
         this.messages = messages;
 
         this.initGUI();
-        this.setDiscover();
-
+        this.setIdle();
+//        this.setDiscover();
         this.setWindowListener(listener);
         this.setListSelectionListener(listener);
         this.setActionListener(listener);
@@ -271,9 +217,6 @@ public class MainView extends JFrame {
         // center on desktop
         this.setLocationRelativeTo(null);
 
-        // hide the advanced options at start
-        this.pnlCustomHeading.setVisible(false);
-        this.pnlCustomAddress.setVisible(false);
     }
 
     private void initGeneralGUI() {
@@ -344,20 +287,26 @@ public class MainView extends JFrame {
         constraints.gridx = 0;
         constraints.weightx = 1.0;
 
+
         constraints.gridy = 0;
-        this.initTopGUI(constraints);
+        this.initRobotType(constraints);
 
         constraints.gridy = 1;
-        this.initMainGifGUI(constraints);
+        this.initCustomGUI(constraints);
 
         constraints.gridy = 2;
-        this.initTextInfoGUI(constraints);
+        this.initTopGUI(constraints);
 
         constraints.gridy = 3;
         this.initButtonGUI(constraints);
 
         constraints.gridy = 4;
-        this.initCustomGUI(constraints);
+        this.initMainGifGUI(constraints);
+
+        constraints.gridy = 5;
+        this.initTextInfoGUI(constraints);
+
+
     }
 
     private void initTopGUI(GridBagConstraints constraints) {
@@ -440,8 +389,8 @@ public class MainView extends JFrame {
         ImageIcon gif = getGif(UiState.DISCOVERING, ConnectionType.WIRED);
         this.pnlGif.setPreferredSize(new Dimension(gif.getIconWidth(), gif.getIconHeight()));
 
-        for ( UiState state : UiState.values() ) {
-            for ( ConnectionType connectionType : ConnectionType.values() ) {
+        for (UiState state : UiState.values()) {
+            for (ConnectionType connectionType : ConnectionType.values()) {
                 JLabel label = new JLabel();
                 label.setIcon(getGif(state, connectionType));
                 label.setHorizontalAlignment(SwingConstants.CENTER);
@@ -480,48 +429,65 @@ public class MainView extends JFrame {
 
     private void initCustomGUI(GridBagConstraints constraints) {
         this.pnlCenter.add(this.pnlCustomContainer, constraints);
-        this.pnlCustomContainer.setLayout(new CardLayout());
+        this.pnlCustomContainer.add(this.tabCustomPain, constraints);
 
         this.initAddressGUI();
-        this.initNaoLogin();
+        this.initSshLogin();
 
-        this.pnlCustomContainer.add(new JPanel(), CARD_CUSTOM_EMPTY);
     }
 
-    private void initNaoLogin() {
-        this.pnlCustomContainer.add(this.pnlNaoLogin, CARD_NAO_LOGIN);
-        this.pnlNaoLogin.setLayout(new BoxLayout(this.pnlNaoLogin, BoxLayout.PAGE_AXIS));
+    private void initRobotType(GridBagConstraints constraints) {
+        this.cmbRobotType.addItem(new ComboItemRobotType(SerialRobotDetector.class, "arduino"));
+        this.cmbRobotType.addItem(new ComboItemRobotType(RndisDetector.class, "ev3"));
+        this.cmbRobotType.addItem(new ComboItemRobotType(MdnsDetector.class, "nao"));
+        this.cmbRobotType.addItem(new ComboItemRobotType(RaspberrypiDetector.class, "raspberry"));
+        this.pnlCenter.add(this.pnlRobotType, constraints);
+        this.pnlRobotType.setLayout(new BoxLayout(this.pnlRobotType, BoxLayout.LINE_AXIS));
 
-        this.pnlNaoLogin.add(Box.createRigidArea(new Dimension(0, 16)));
+        this.pnlRobotType.add(lblRobotType);
+        this.pnlRobotType.add(Box.createRigidArea(new Dimension(0, 16)));
+        this.lblRobotType.setText(this.messages.getString("robottype") + ':');
+        this.cmbRobotType.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        ((JComponent) this.cmbRobotType.getComponent(0)).setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 4));
+        this.pnlRobotType.add(this.cmbRobotType);
+    }
 
-        JPanel pnlPassword = new JPanel();
-        this.pnlNaoLogin.add(pnlPassword);
-        pnlPassword.setLayout(new BoxLayout(pnlPassword, BoxLayout.LINE_AXIS));
-        pnlPassword.add(this.lblNaoPassword);
-        pnlPassword.add(Box.createRigidArea(new Dimension(6, 0)));
-        this.lblNaoPassword.setText(this.messages.getString("password") + ':');
-        pnlPassword.add(this.txtFldNaoPassword);
+    private void initSshLogin() {
+        this.tabCustomPain.add(CARD_SSH_LOGIN, this.pnlSshLogin);
+        this.pnlSshLogin.setLayout(new GridLayout(4, 2, 4, 4));
+
+        this.lblSshIpAddress.setText(this.messages.getString("ip") + ':');
+        this.lblSshIpAddress.setHorizontalAlignment(SwingConstants.RIGHT);
+        this.pnlSshLogin.add(this.lblSshIpAddress);
+        this.pnlSshLogin.add(this.txtFldSshIpAddress);
+
+        this.lblSshUserName.setText(this.messages.getString("username") + ':');
+        this.lblSshUserName.setHorizontalAlignment(SwingConstants.RIGHT);
+        this.pnlSshLogin.add(lblSshUserName);
+        this.pnlSshLogin.add(txtFldSshUserName);
+
+        this.lblSshPassword.setText(this.messages.getString("password") + ':');
+        this.lblSshPassword.setHorizontalAlignment(SwingConstants.RIGHT);
+        this.pnlSshLogin.add(this.lblSshPassword);
+        this.txtFldSshPassword.setSize(new Dimension(16, 10));
+        this.pnlSshLogin.add(this.txtFldSshPassword);
+
+        this.lblSshPort.setText(this.messages.getString("port") + ':');
+        this.lblSshPort.setHorizontalAlignment(SwingConstants.RIGHT);
+        this.pnlSshLogin.add(this.lblSshPort);
+        this.pnlSshLogin.add(this.txtFldSshPort);
+
+        this.tabCustomPain.setEnabledAt(1, false);
     }
 
     private void initAddressGUI() {
         // Custom info panel
-        this.pnlCustomContainer.add(this.pnlAddress, CARD_ADDRESS);
+        this.tabCustomPain.add(CARD_ADDRESS, this.pnlAddress);
 
         this.pnlAddress.setLayout(new BoxLayout(this.pnlAddress, BoxLayout.PAGE_AXIS));
 
         this.pnlAddress.add(this.pnlCustomInfo);
         this.pnlCustomInfo.setLayout(new FlowLayout(FlowLayout.LEADING));
-
-        this.pnlCustomInfo.add(this.butCustom);
-        this.butCustom.setActionCommand("customaddress");
-        this.butCustom.setIcon(ImageHelper.getIcon(FILENAME_UNCHECKED));
-        this.butCustom.setText(this.messages.getString("checkCustomDesc"));
-        this.butCustom.setBorderPainted(false);
-        this.butCustom.setBackground(Color.WHITE);
-        this.butCustom.setFocusPainted(false);
-        this.butCustom.setContentAreaFilled(false);
-        this.butCustom.setForeground(this.lblCustomIp.getForeground());
-        this.butCustom.setMargin(new Insets(0, 0, 0, 0));
 
         // Custom heading panel
         this.pnlAddress.add(this.pnlCustomHeading);
@@ -531,6 +497,8 @@ public class MainView extends JFrame {
         this.txtFldCustomHeading.setEditable(false);
         this.txtFldCustomHeading.setBorder(null);
         this.txtFldCustomHeading.setText(this.messages.getString("customDesc"));
+
+        this.cmbRobotType.setActionCommand(CMD_SELECT_ROBOTTYPE);
 
         // Custom address panel
         this.pnlAddress.add(this.pnlCustomAddress);
@@ -570,6 +538,7 @@ public class MainView extends JFrame {
         this.butClose.addActionListener(listener);
         this.butCustom.addActionListener(listener);
         this.butCopy.addActionListener(listener);
+        this.cmbRobotType.addActionListener(listener);
     }
 
     private void setWindowListener(WindowListener windowListener) {
@@ -579,6 +548,7 @@ public class MainView extends JFrame {
     private void setListSelectionListener(ListSelectionListener listener) {
         ListSelectionModel selectionModel = this.listRobots.getSelectionModel();
         selectionModel.addListSelectionListener(listener);
+
     }
 
     // States
@@ -592,13 +562,27 @@ public class MainView extends JFrame {
         this.butConnect.setSelected(false);
         this.butConnect.setEnabled(false);
         this.butConnect.setActionCommand(CMD_CONNECT);
-        this.butScan.setEnabled(false);
+        this.butScan.setEnabled(true);
         this.butScan.setSelected(false);
+        this.toggleScan();
         this.txtAreaInfo.setText(this.messages.getString("plugInInfo"));
         ((CardLayout) this.pnlGif.getLayout()).show(this.pnlGif, UiState.DISCOVERING.toString() + ConnectionType.WIRED);
         this.hideArduinoMenu();
         this.showTopRobots(Collections.emptyList());
-        this.showCustomAddress();
+
+    }
+
+    void setIdle() {
+        this.butConnect.setText(this.messages.getString("connect"));
+        this.butConnect.setSelected(false);
+        this.butConnect.setEnabled(false);
+        this.butConnect.setActionCommand(CMD_CONNECT);
+        this.butScan.setActionCommand(CMD_SCAN);
+        this.butScan.setText(this.messages.getString("scan"));
+        this.cmbRobotType.setEnabled(true);
+        this.hideArduinoMenu();
+        this.showTopRobots(Collections.emptyList());
+
     }
 
     void setWaitForConnect(String robotName, ConnectionType connectionType) {
@@ -625,9 +609,9 @@ public class MainView extends JFrame {
         this.txtFldToken.setPreferredSize(null);
         // Add one pixel width to remove small scrolling
         this.txtFldPreToken.setPreferredSize(new Dimension((int) this.txtFldPreToken.getPreferredSize().getWidth() + 1,
-                                                           (int) this.txtFldPreToken.getPreferredSize().getHeight()));
+                (int) this.txtFldPreToken.getPreferredSize().getHeight()));
         this.txtFldToken.setPreferredSize(new Dimension((int) this.txtFldToken.getPreferredSize().getWidth() + 1,
-                                                        (int) this.txtFldToken.getPreferredSize().getHeight()));
+                (int) this.txtFldToken.getPreferredSize().getHeight()));
         this.butCopy.setVisible(showCopy);
 
         // strip default port from serverAddress
@@ -648,7 +632,7 @@ public class MainView extends JFrame {
     }
 
     void setWaitExecution() {
-        if ( this.toggle ) {
+        if (this.toggle) {
             this.butRobot.setState(UiState.CONNECTED);
         } else {
             this.butRobot.setState(UiState.DISCOVERED);
@@ -690,60 +674,55 @@ public class MainView extends JFrame {
     }
 
     // Custom
-    private void showCustomAddress() {
-        CardLayout cl = (CardLayout) this.pnlCustomContainer.getLayout();
-        cl.show(this.pnlCustomContainer, CARD_ADDRESS);
-    }
 
-    void showCustomNaoLogin() {
-        CardLayout cl = (CardLayout) this.pnlCustomContainer.getLayout();
-        cl.show(this.pnlCustomContainer, CARD_NAO_LOGIN);
-    }
-
-    private void showAdvancedOptions() {
-        Dimension size = this.getSize();
-
-        size.height += ADDITIONAL_ADVANCED_HEIGHT;
-        this.setSize(size);
-        this.pnlCustomHeading.setVisible(true);
-        this.pnlCustomAddress.setVisible(true);
-        this.butCustom.setIcon(ImageHelper.getIcon(FILENAME_CHECKED));
-        this.customMenuVisible = true;
-    }
-
-    private void hideAdvancedOptions() {
-        if ( this.customMenuVisible ) {
-            Dimension size = this.getSize();
-
-            size.height -= ADDITIONAL_ADVANCED_HEIGHT;
-            this.setSize(size);
-            this.pnlCustomHeading.setVisible(false);
-            this.pnlCustomAddress.setVisible(false);
-            this.butCustom.setIcon(ImageHelper.getIcon(FILENAME_UNCHECKED));
-            this.customMenuVisible = false;
-        }
-    }
-
-    void toggleAdvancedOptions() {
-        if ( this.customMenuVisible ) {
-            this.hideAdvancedOptions();
+    void selectRobotType() {
+        ComboItemRobotType robotType = (ComboItemRobotType) this.cmbRobotType.getSelectedItem();
+        if (robotType != null && robotType.getDescription().equals("raspberry")) {
+            this.txtFldSshUserName.setText("pi");
+            this.txtFldSshPassword.setText("raspberry");
+            this.txtFldSshPort.setText("22");
+            this.enableRobotSshConnectionTab();
         } else {
-            this.showAdvancedOptions();
+            this.disableRobotSshConnectionTab();
         }
     }
 
-    boolean isCustomAddressSelected() {
-        return this.customMenuVisible;
+    void toggleScan() {
+        if (butScan.getActionCommand().equals(CMD_SCAN)) {
+            this.butScan.setText(this.messages.getString("stopScan"));
+            this.butScan.setActionCommand(CMD_STOP_SCAN);
+            this.cmbRobotType.setEnabled(false);
+        } else {
+            this.butScan.setText(this.messages.getString("scan"));
+            this.butScan.setActionCommand(CMD_SCAN);
+            this.cmbRobotType.setEnabled(true);
+        }
     }
+
+    Class<? extends IDetector> getSelectedRobotType() {
+        ComboItemRobotType selectedItem = (ComboItemRobotType) this.cmbRobotType.getSelectedItem();
+        return selectedItem.getId();
+    }
+
+    private void enableRobotSshConnectionTab() {
+        this.tabCustomPain.setEnabledAt(1, true);
+        this.tabCustomPain.setSelectedIndex(1);
+    }
+
+    private void disableRobotSshConnectionTab() {
+        this.tabCustomPain.setEnabledAt(1, false);
+        this.tabCustomPain.setSelectedIndex(0);
+    }
+
 
     Pair<String, String> getCustomAddress() {
         String ip = (String) this.cmbBoxCustomIp.getSelectedItem();
         String port = (String) this.cmbBoxCustomPort.getSelectedItem();
 
-        if ( ip == null ) {
+        if (ip == null) {
             ip = "";
         }
-        if ( port == null ) {
+        if (port == null) {
             port = "";
         }
 
@@ -753,15 +732,27 @@ public class MainView extends JFrame {
     void setCustomAddresses(Iterable<? extends Pair<String, String>> addresses) {
         this.cmbBoxCustomIp.removeAllItems();
         this.cmbBoxCustomPort.removeAllItems();
-        for ( Pair<String, String> address : addresses ) {
+        for (Pair<String, String> address : addresses) {
             this.cmbBoxCustomIp.addItem(address.getFirst());
             this.cmbBoxCustomPort.addItem(address.getSecond());
         }
     }
 
-    // NAO
-    String getNaoPassword() {
-        return this.txtFldNaoPassword.getText();
+    // SSH
+    String getSshAddress() {
+        return this.txtFldSshIpAddress.getText();
+    }
+
+    String getSshUserName() {
+        return this.txtFldSshUserName.getText();
+    }
+
+    String getSshPassword() {
+        return this.txtFldSshPassword.getText();
+    }
+
+    int getSshPort() {
+        return Integer.parseInt(this.txtFldSshPort.getText());
     }
 
     // Other
@@ -780,7 +771,7 @@ public class MainView extends JFrame {
      */
     void setUpdateButton(Status updateStatus) {
         String text = this.messages.getString("update") + ": ";
-        switch ( updateStatus ) {
+        switch (updateStatus) {
             case NEWER_VERSION:
             case SAME_VERSION:
             case OLDER_VERSION:

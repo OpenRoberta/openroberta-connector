@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class CustomAddressHelper {
     private static final Logger LOG = LoggerFactory.getLogger(CustomAddressHelper.class);
 
-    private static final int MAX_ADDRESS_ENTRIES = 5;
+    private static final int MAX_ADDRESS_ENTRIES = 7;
     private static final String CUSTOM_ADDRESSES_FILENAME =
             SystemUtils.getUserHome().getPath() + File.separator + "OpenRobertaConnector" + File.separator + "customaddresses.txt";
     private static final String ADDRESS_DELIMITER = " "; // colon may be used in ipv6 addresses
@@ -29,7 +29,12 @@ public class CustomAddressHelper {
     private Deque<Pair<String, String>> addresses = new ArrayDeque<>();
 
     public CustomAddressHelper() {
-        this.addresses.addAll(loadFromFile());
+        if (new File(CUSTOM_ADDRESSES_FILENAME).exists()) {
+            this.addresses.addAll(loadFromFile());
+        } else {
+            this.addresses.add(new Pair<>(PropertyHelper.getInstance().getProperty("serverIp"), PropertyHelper.getInstance().getProperty("serverPort")));
+            this.addresses.add(new Pair<>("localhost", "1999"));
+        }
     }
 
     public Deque<Pair<String, String>> get() {

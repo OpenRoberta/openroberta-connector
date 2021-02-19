@@ -48,6 +48,7 @@ public class Ev3Connector extends AbstractConnector<Ev3> {
 
     @Override
     protected void runLoopBody() {
+
         switch ( this.state ) {
             case DISCOVER:
                 try {

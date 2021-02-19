@@ -16,6 +16,7 @@ import de.fhg.iais.roberta.util.IOraListenable;
 public interface IConnector<T extends IRobot> extends IOraListenable<IConnector.State> {
 
     enum State {
+        IDLE,
         DISCOVER,
         RECONNECT,
         WAIT_FOR_CONNECT_BUTTON_PRESS,

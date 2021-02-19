@@ -1,24 +1,19 @@
 package de.fhg.iais.roberta.main;
 
-import org.apache.commons.lang3.concurrent.ConcurrentUtils;
+import de.fhg.iais.roberta.connection.IDetector;
+import de.fhg.iais.roberta.connection.IRobot;
+import de.fhg.iais.roberta.util.IOraListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
-
-import de.fhg.iais.roberta.connection.IDetector;
-import de.fhg.iais.roberta.connection.IRobot;
-import de.fhg.iais.roberta.util.IOraListener;
 
 /**
  * Helper class for robot detection.
@@ -30,22 +25,17 @@ public class RobotDetectorHelper implements IOraListener<IRobot> {
     private static final int POOL_SIZE = 4;
 
     private final ExecutorService executorService = Executors.newFixedThreadPool(POOL_SIZE);
-    private final Map<IDetector, Future<List<IRobot>>> futures = new HashMap<>(5);
-    private final Map<IDetector, Boolean> ranOnce = new HashMap<>(5);
+    private final Map<Class, IDetector> detectors = new HashMap<>(5);
+    private Future<List<IRobot>> future = null;
 
     private IRobot selectedRobot = null;
 
     /**
      * Constructor for the robot detector helper.
      * Starts the detectors and registers the corresponding futures in a map.
-     *
-     * @param detectors a list of detectors that should be used to find robots
      */
-    public RobotDetectorHelper(List<? extends IDetector> detectors) {
-        for ( IDetector detector : detectors ) {
-            this.futures.put(detector, this.executorService.submit(detector::detectRobots));
-            this.ranOnce.put(detector, false);
-        }
+    public RobotDetectorHelper() {
+
     }
 
     /**
@@ -54,42 +44,29 @@ public class RobotDetectorHelper implements IOraListener<IRobot> {
      *
      * @return a list of currently detected robots
      */
-    public List<IRobot> getDetectedRobots() {
+    public List<IRobot> getDetectedRobots(IDetector detector) {
         List<IRobot> robots = new ArrayList<>(5);
 
-        // Check each detector future
-        for ( Entry<IDetector, Future<List<IRobot>>> entry : this.futures.entrySet() ) {
-            IDetector detector = entry.getKey();
-            Future<List<IRobot>> future = entry.getValue();
-
-            // If the future is done add the results to the list and start the detector again
-            if ( future.isDone() ) {
-                try {
-                    robots.addAll(future.get());
-                } catch ( InterruptedException e ) {
-                    LOG.info("Future was interrupted: {}", e.getMessage());
-                } catch ( ExecutionException e ) {
-                    LOG.info("Exception during callable: {}", e.getMessage());
-                }
-
-                // Enqueue another search process
-                this.futures.put(detector, this.executorService.submit(detector::detectRobots));
-
-                // Register that detector ran once
-                this.ranOnce.put(detector, true);
-            }
+        if (this.future == null) {
+            this.future = this.executorService.submit(detector::detectRobots);
         }
+        if (this.future.isDone()) {
+            try {
+                List<IRobot> rob = this.future.get();
+                if (rob != null) {
+                    robots.addAll(rob);
+                }
+            } catch (InterruptedException e) {
+                LOG.info("Future was interrupted: {}", e.getMessage());
+            } catch (ExecutionException e) {
+                LOG.info("Exception during callable: {}", e.getMessage());
+            }
+            this.future = null;
+        }
+
         return robots;
     }
 
-    /**
-     * Returns whether all detectors ran at least once.
-     *
-     * @return whether each detector ran at least once
-     */
-    public boolean allDetectorsRanOnce() {
-        return !this.ranOnce.containsValue(false);
-    }
 
     /**
      * Returns the currently selected robot.
@@ -110,11 +87,6 @@ public class RobotDetectorHelper implements IOraListener<IRobot> {
      */
     public void reset() {
         this.selectedRobot = null;
-        for ( Entry<IDetector, Boolean> entry : this.ranOnce.entrySet() ) {
-            entry.setValue(false);
-        }
-        for ( Entry<IDetector, Future<List<IRobot>>> entry : this.futures.entrySet() ) {
-            entry.setValue(ConcurrentUtils.constantFuture(Collections.emptyList()));
-        }
+        this.future = null;
     }
 }

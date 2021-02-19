@@ -33,8 +33,8 @@ import de.fhg.iais.roberta.connection.wireless.nao.Nao;
 /**
  * Detector class for mDNS robots. Searches for mDNS in all network connections.
  */
-public class mDnsDetector implements IDetector {
-    private static final Logger LOG = LoggerFactory.getLogger(mDnsDetector.class);
+public class MdnsDetector implements IDetector {
+    private static final Logger LOG = LoggerFactory.getLogger(MdnsDetector.class);
 
     private static final Map<String, Class<? extends AbstractWirelessRobot>> SERVICE_TYPES = new HashMap<>(1);
     static {
