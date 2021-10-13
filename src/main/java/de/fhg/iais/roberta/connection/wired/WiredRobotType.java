@@ -8,6 +8,7 @@ public enum WiredRobotType {
     BOTNROLL ("ardu", "Bot'n Roll", true),
     MBOT ("mbot", "mBot", true),
     FESTOBIONIC("festobionic", "Bionics4Education", true),
+    FESTOBIONICFLOWER("festobionicflower", "BionicFlower", true),
     MICROBIT("microbit", "Micro:bit/Calliope mini", true),
     EV3("ev3", "LEGO EV3", false),
     UNOWIFIREV2("unowifirev2", "Arduino Uno Wifi Rev2", true),

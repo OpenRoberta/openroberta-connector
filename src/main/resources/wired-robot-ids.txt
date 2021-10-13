@@ -25,6 +25,7 @@
 1366,1025,microbit
 03EB,2145,unowifirev2
 0403,6015,festobionic
+0403,6001,festobionicflower
 
 # nano33ble: 005A for flashing, 805A for serial communication
 2341,005A,nano33ble
