@@ -57,7 +57,7 @@ class ArduinoCommunicator {
         } else {
             throw new UnsupportedOperationException("Operating system not supported!");
         }
-        if ( this.robot.getType() == WiredRobotType.FESTOBIONIC ) {
+        if (( this.robot.getType() == WiredRobotType.FESTOBIONIC )||( this.robot.getType() == WiredRobotType.FESTOBIONICFLOWER )) {
             this.esptoolPath = requireEsptool();
         }
     }
@@ -68,7 +68,7 @@ class ArduinoCommunicator {
      * @return whether esptool is initialized, or true if it is not required
      */
     boolean isEspInitialized() {
-        return this.robot.getType() != WiredRobotType.FESTOBIONIC || !this.esptoolPath.isEmpty();
+        return ((this.robot.getType() != WiredRobotType.FESTOBIONIC)&&(this.robot.getType() != WiredRobotType.FESTOBIONICFLOWER)) || !this.esptoolPath.isEmpty();
     }
 
     JSONObject getDeviceInfo() {
@@ -107,6 +107,7 @@ class ArduinoCommunicator {
                     args.add("-Ufuse2:w:0x01:m", "-Ufuse5:w:0xC9:m", "-Ufuse8:w:0x02:m"); // program fuses
                     args.add("-Uflash:w:" + PropertyHelper.getInstance().getProperty("megaavrPath") + "/bootloaders/atmega4809_uart_bl.hex:i"); // additional bootloader
                     return runProcessUntilTermination(args, true);
+                case FESTOBIONICFLOWER:
                 case FESTOBIONIC:
                     LOG.info("Starting to upload program {} to {}", filePath, portName);
                     // files are zipped serverside and sent to the Connector, unzipped here and flashed by the esptool
