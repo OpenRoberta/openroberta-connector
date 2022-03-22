@@ -6,6 +6,7 @@
 - Arduino Mega
 - Arduino Nano
 - BOB3
+- ROB3RTA
 - Bot'n'Roll
 - mBot
 - NAO
@@ -64,9 +65,9 @@ Linux:
 
 Windows:
 - download and install [WiX Toolset](https://github.com/wixtoolset/wix3/releases)
-- download and install [WDK 8.1](https://www.microsoft.com/en-us/download/details.aspx?id=42273)
+- download and install [WDK 8](https://docs.microsoft.com/en-us/windows-hardware/drivers/other-wdk-downloads#step-2-install-the-wdk)
   - or run
-    - `curl 'https://download.microsoft.com/download/0/8/C/08C7497F-8551-4054-97DE-60C0E510D97A/wdk/wdksetup.exe' --output wdksetup.exe`
+    - `curl 'http://download.microsoft.com/download/2/4/C/24CA7FB3-FF2E-4DB5-BA52-62A4399A4601/wdk/wdksetup.exe' --output wdksetup.exe`
     - `./wdksetup.exe //features + //q //norestart //ceip off`
 - add a environment variable `WIX=<wix-install-path>\bin`
 - run `mvn clean install` in the project directory
