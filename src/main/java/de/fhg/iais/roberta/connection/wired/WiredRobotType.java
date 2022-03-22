@@ -12,6 +12,7 @@ public enum WiredRobotType {
     EV3("ev3", "LEGO EV3", false),
     UNOWIFIREV2("unowifirev2", "Arduino Uno Wifi Rev2", true),
     NANO33BLE("nano33ble", "Arduino Nano 33 BLE", true),
+    ROB3RTA ("rob3rta", "ROB3RTA", true),
     NONE ("none", "none", false);
 
     private final String text;

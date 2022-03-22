@@ -152,6 +152,10 @@ class ArduinoCommunicator {
                     args.add(this.bossacPath);
                     args.add("-d", "--port=" + portForFlashing, "-U", "-i", "-e", "-w", filePath, "-R");
                     return runProcessUntilTermination(args, true);
+                case ROB3RTA:
+                    addAvrDudeStdParams(args, avrdudePath, avrdudeConfPath, filePath, portName);
+                    args.add("-patmega328pb", "-cavrisp2", "-e");
+                    return runProcessUntilTermination(args, true);
                 default:
                     throw new IllegalStateException("Robot type not supported");
             }
