@@ -54,7 +54,7 @@ deploy:
   draft: true
   on:
     repo: OpenRoberta/openroberta-connector
-    branch: master
+    branch: beateTest
     tags: true
 
 notifications:
