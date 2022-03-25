@@ -25,7 +25,7 @@
         <repository>
             <id>ORA-releases</id>
             <name>Open Roberta releases repository</name>
-            <url>http://maven.iais.fraunhofer.de/artifactory/openroberta-release</url>
+            <url>https://maven.iais.fraunhofer.de/artifactory/openroberta-release</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -36,7 +36,7 @@
         <repository>
             <id>ORA-snapshots</id>
             <name>Open Roberta snapshot repository</name>
-            <url>http://maven.iais.fraunhofer.de/artifactory/openroberta-snapshot-local</url>
+            <url>https://maven.iais.fraunhofer.de/artifactory/openroberta-snapshot-local</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -55,13 +55,13 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.6</version>
+            <version>2.7</version>
         </dependency>
         <!--Server communication-->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.5.12</version>
+            <version>4.5.13</version>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
@@ -76,7 +76,7 @@
         <dependency>
             <groupId>net.lingala.zip4j</groupId>
             <artifactId>zip4j</artifactId>
-            <version>2.5.0</version>
+            <version>2.9.1</version>
         </dependency>
         <!--Serial device handling-->
         <dependency>
