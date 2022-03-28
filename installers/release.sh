@@ -54,9 +54,9 @@ if [ "$1" == "" ]; then
     usage
 else
     case $1 in
-        linux) create_linux ;;
-        windows) create_windows ;;
-        osx) create_osx ;;
+        linux | Linux)      create_linux ;;
+        windows | Windows)  create_windows ;;
+        osx | macOS)        create_osx ;;
     esac
 fi
 echo "Release finished"
