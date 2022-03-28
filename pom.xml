@@ -3,7 +3,7 @@
 
     <groupId>de.fhg.iais.roberta</groupId>
     <artifactId>OpenRobertaConnector</artifactId>
-    <version>1.4.0</version>
+    <version>1.4.1-SNAPSHOT</version>
     <scm>
         <developerConnection>scm:git:git@github.com:OpenRoberta/openroberta-connector.git</developerConnection>
       <tag>HEAD</tag>
