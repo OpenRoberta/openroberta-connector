@@ -1,0 +1,47 @@
+name: Create releases for Windows, Linux and MacOS
+
+on:
+  release:
+    types:
+      - created
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup java JDK
+        uses: actions/setup-java@v2.1.0
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+
+      - name: Build with maven
+        run: mvn --batch-mode clean install -DskipTests
+
+      - name: Create installer | ${{ runner.os }}
+        if: runner.os != 'Windows'
+        run: cd ./installers; ./release.sh ${{ runner.os }}
+
+      - name: Create installer | Windows
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          curl -v 'https://download.microsoft.com/download/2/4/C/24CA7FB3-FF2E-4DB5-BA52-62A4399A4601/wdk/wdksetup.exe' --output wdksetup.exe
+          ./wdksetup.exe //features + //q //norestart //ceip off
+          export WIX=$WIX/bin
+          cd ./installers; ./release.sh windows
+      - name: Upload release assets
+        uses: AButler/upload-release-assets@v2.0
+        with:
+          files: 'installers/*.msi;installers/*.tar.gz;installers/*.pkg'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          release-tag: ${{ github.event.release.tag_name }}
