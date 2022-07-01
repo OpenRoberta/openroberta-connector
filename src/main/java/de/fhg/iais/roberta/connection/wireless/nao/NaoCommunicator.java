@@ -1,5 +1,6 @@
 package de.fhg.iais.roberta.connection.wireless.nao;
 
+import de.fhg.iais.roberta.connection.wireless.IWirelessCommunicator;
 import net.schmizz.sshj.connection.ConnectionException;
 import net.schmizz.sshj.transport.TransportException;
 import net.schmizz.sshj.userauth.UserAuthException;
@@ -21,7 +22,7 @@ import de.fhg.iais.roberta.util.SshConnection;
 /**
  * Communicator class for the NAO robot. Handles network communication between the NAO and the connector.
  */
-public class NaoCommunicator {
+public class NaoCommunicator implements IWirelessCommunicator {
     private static final Logger LOG = LoggerFactory.getLogger(NaoCommunicator.class);
 
     private static final String USERNAME = "nao";

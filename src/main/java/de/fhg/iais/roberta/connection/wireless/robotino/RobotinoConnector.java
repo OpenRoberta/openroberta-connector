@@ -1,4 +1,4 @@
-package de.fhg.iais.roberta.connection.wireless.nao;
+package de.fhg.iais.roberta.connection.wireless.robotino;
 
 import de.fhg.iais.roberta.connection.wireless.AbstractWirelessConnector;
 import de.fhg.iais.roberta.connection.wireless.IWirelessConnector;
@@ -13,34 +13,20 @@ import static de.fhg.iais.roberta.connection.IConnector.State.ERROR_AUTH;
 import static de.fhg.iais.roberta.connection.IConnector.State.ERROR_UPLOAD_TO_ROBOT;
 
 /**
- * Connector class for NAO robots.
+ * Connector class for Robotino robots.
  * Handles state and communication between robot, connector and server.
  */
-public class NaoConnector extends AbstractWirelessConnector<Nao> implements IWirelessConnector<Nao> {
-    private static final Logger LOG = LoggerFactory.getLogger(NaoConnector.class);
-
-
-    /**
-     * Constructor for tha NAO connector.
-     *
-     * @param nao the NAO that should be connected to
-     */
-    NaoConnector(Nao nao) {
-        super(nao, new NaoCommunicator(nao));
+public class RobotinoConnector extends AbstractWirelessConnector<Robotino> implements IWirelessConnector<Robotino> {
+    private static final Logger LOG = LoggerFactory.getLogger(RobotinoConnector.class);
+    RobotinoConnector(Robotino robotino) {
+        super(robotino, new RobotinoViewCommunicator(robotino));
     }
     @Override
     protected void waitUpload() {
         try {
             this.communicator.setPassword(this.password);
-
-            String firmware = this.communicator.checkFirmwareVersion();
-            if ( !firmware.isEmpty() ) {
-                if ( !this.serverCommunicator.verifyHalChecksum(firmware) ) {
-                    this.serverCommunicator.updateHalNAO(firmware);
-                }
-            }
             Pair<byte[], String> program = getProgram();
-            this.communicator.uploadFile(program.getFirst(), program.getSecond());
+            this.communicator.uploadFile(program.getFirst(), "NEPOprog.py");
             this.fire(State.WAIT_EXECUTION);
         } catch ( UserAuthException e ) {
             LOG.error("Could not authorize user: {}", e.getMessage());
@@ -50,4 +36,6 @@ public class NaoConnector extends AbstractWirelessConnector<Nao> implements IWir
             this.reset(ERROR_UPLOAD_TO_ROBOT);
         }
     }
+
+
 }

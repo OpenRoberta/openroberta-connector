@@ -1,5 +1,6 @@
 package de.fhg.iais.roberta.ui.main;
 
+import de.fhg.iais.roberta.connection.wireless.IWirelessConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +37,6 @@ import de.fhg.iais.roberta.connection.wired.IWiredRobot;
 import de.fhg.iais.roberta.connection.wired.arduino.Arduino;
 import de.fhg.iais.roberta.connection.wired.microbit.Microbit;
 import de.fhg.iais.roberta.connection.wireless.IWirelessRobot;
-import de.fhg.iais.roberta.connection.wireless.nao.NaoConnector;
 import de.fhg.iais.roberta.main.UpdateHelper;
 import de.fhg.iais.roberta.main.UpdateInfo;
 import de.fhg.iais.roberta.main.UpdateInfo.Status;
@@ -178,8 +178,8 @@ public class MainController implements IController, IOraListenable<IRobot> {
                 break;
             case WAIT_UPLOAD:
                 if ( this.connector.getRobot() instanceof IWirelessRobot ) {
-                    String password = this.mainView.getNaoPassword();
-                    ((NaoConnector) this.connector).setPassword(password);
+                    String password = this.mainView.getRobotPassword();
+                    ((IWirelessConnector<IRobot>) this.connector).setPassword(password);
                 }
                 break;
             case WAIT_EXECUTION:

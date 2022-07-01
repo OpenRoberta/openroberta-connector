@@ -1,5 +1,6 @@
 package de.fhg.iais.roberta.main;
 
+import de.fhg.iais.roberta.connection.wireless.HostnameDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +34,8 @@ class OpenRobertaConnector {
     private final IDetector wiredRobotDetector = new SerialRobotDetector();
     private final IDetector rndisDetector = new RndisDetector();
     private final IDetector naoDetector = new mDnsDetector();
-    private final RobotDetectorHelper robotDetectorHelper = new RobotDetectorHelper(Arrays.asList(this.wiredRobotDetector, this.rndisDetector, this.naoDetector));
+    private final IDetector robotinoDetector = new HostnameDetector();
+    private final RobotDetectorHelper robotDetectorHelper = new RobotDetectorHelper(Arrays.asList(this.wiredRobotDetector, this.rndisDetector, this.naoDetector, this.robotinoDetector));
 
     OpenRobertaConnector() {
         ResourceBundle messages = ResourceBundle.getBundle(PropertyHelper.getInstance().getProperty("messagesBundle"), Locale.getDefault());

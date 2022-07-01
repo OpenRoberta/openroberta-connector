@@ -236,8 +236,7 @@ public class MainView extends JFrame {
     private static final String CARD_NAO_LOGIN = "naoLogin";
     private final JPanel pnlNaoLogin = new JPanel();
     private final JLabel lblNaoPassword = new JLabel();
-    private final JTextField txtFldNaoPassword = new JTextField();
-
+    private final JTextField txtFldRobotPassword = new JTextField();
     // - Custom Empty -
     private static final String CARD_CUSTOM_EMPTY = "customEmpty";
 
@@ -500,7 +499,7 @@ public class MainView extends JFrame {
         pnlPassword.add(this.lblNaoPassword);
         pnlPassword.add(Box.createRigidArea(new Dimension(6, 0)));
         this.lblNaoPassword.setText(this.messages.getString("password") + ':');
-        pnlPassword.add(this.txtFldNaoPassword);
+        pnlPassword.add(this.txtFldRobotPassword);
     }
 
     private void initAddressGUI() {
@@ -760,8 +759,8 @@ public class MainView extends JFrame {
     }
 
     // NAO
-    String getNaoPassword() {
-        return this.txtFldNaoPassword.getText();
+    String getRobotPassword() {
+        return this.txtFldRobotPassword.getText();
     }
 
     // Other
