@@ -3,18 +3,19 @@
 # vendorID,productID,wiredRobotType
 # 
 # Available wired robot types are:
-# Arduino Uno:             uno
-# Arduino Nano:            nano
-# Arduino Mega:            mega
-# BOB3:                    bob3
-# Bot'n Roll:              ardu
-# Mbot:                    mbot
-# Micro:bit/Calliope mini: microbit
-# Arduino Uno Wifi Rev2:   unowifirev2
-# Bionics4Education:       festobionic
-# Arduino Nano 33 BLE:     nano33ble
-# ROB3RTA:                 rob3rta
-# FestoBionicFlower        festobionicflower
+# Arduino Uno:              uno
+# Arduino Nano:             nano
+# Arduino Mega:             mega
+# BOB3:                     bob3
+# Bot'n Roll:               ardu
+# Mbot:                     mbot
+# Micro:bit/Calliope mini:  microbit
+# Arduino Uno Wifi Rev2:    unowifirev2
+# Bionics4Education:        festobionic
+# Arduino Nano 33 BLE:      nano33ble
+# ROB3RTA:                  rob3rta
+# FestoBionicFlower         festobionicflower
+# Mbot2                     mbot2
 
 2341,0043,uno
 2A03,0043,uno
@@ -29,6 +30,7 @@
 0403,6015,festobionic
 16C0,0933,rob3rta
 0403,6001,festobionicflower
+1a86,7523,mbot2
 
 # nano33ble: 005A for flashing, 805A for serial communication
 2341,005A,nano33ble

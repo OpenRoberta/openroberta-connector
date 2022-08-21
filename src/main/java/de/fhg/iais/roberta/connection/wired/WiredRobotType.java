@@ -7,6 +7,7 @@ public enum WiredRobotType {
     BOB3 ("bob3", "BOB3", true),
     BOTNROLL ("ardu", "Bot'n Roll", true),
     MBOT ("mbot", "mBot", true),
+    MBOT2 ("mbot2", "mbot2", true),
     FESTOBIONIC("festobionic", "Bionics4Education", true),
     FESTOBIONICFLOWER("festobionicflower", "BionicFlower", true),
     MICROBIT("microbit", "Micro:bit/Calliope mini", true),
