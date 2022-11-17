@@ -1,7 +1,7 @@
 package de.fhg.iais.roberta.connection.wired;
 
 import de.fhg.iais.roberta.connection.wired.mBot2.Mbot2;
-import de.fhg.iais.roberta.connection.wired.legoLargeHub.LegoLargeHub;
+import de.fhg.iais.roberta.connection.wired.spike.Spike;
 import static de.fhg.iais.roberta.util.WiredRobotIdFileHelper.load;
 
 import java.io.BufferedReader;
@@ -81,9 +81,8 @@ public class SerialRobotDetector implements IDetector {
                     case MBOT2:
                         detectedRobots.add(new Mbot2(wiredRobotType, device.port));
                         break;
-                    case SPIKEPRIME:
-                    case ROBOTINVENTOR:
-                        detectedRobots.add(new LegoLargeHub(wiredRobotType, device.port));
+                    case SPIKE:
+                        detectedRobots.add(new Spike(wiredRobotType, device.port));
                         break;
                     case EV3:
                     case NONE:

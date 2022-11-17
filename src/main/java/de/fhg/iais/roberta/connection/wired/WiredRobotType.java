@@ -15,8 +15,7 @@ public enum WiredRobotType {
     UNOWIFIREV2("unowifirev2", "Arduino Uno Wifi Rev2", true),
     NANO33BLE("nano33ble", "Arduino Nano 33 BLE", true),
     ROB3RTA ("rob3rta", "ROB3RTA", true),
-    SPIKEPRIME ("spikeprime", "Spike Prime", true),
-    ROBOTINVENTOR ("robotinventor", "Robot Inventor", true),
+    SPIKE("spike", "Spike", true),
     NONE ("none", "none", false);
 
     private final String text;

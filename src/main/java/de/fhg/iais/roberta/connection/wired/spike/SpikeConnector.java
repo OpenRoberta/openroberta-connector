@@ -1,4 +1,4 @@
-package de.fhg.iais.roberta.connection.wired.legoLargeHub;
+package de.fhg.iais.roberta.connection.wired.spike;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -15,12 +15,12 @@ import de.fhg.iais.roberta.connection.wired.arduino.ArduinoConnector;
 import de.fhg.iais.roberta.util.OraTokenGenerator;
 import de.fhg.iais.roberta.util.Pair;
 
-public class LegoLargeHubConnector extends AbstractConnector<LegoLargeHub> {
+public class SpikeConnector extends AbstractConnector<Spike> {
     private static final Logger LOG = LoggerFactory.getLogger(ArduinoConnector.class);
 
-    private LegoLargeHubCommunicator legoLargeHubCommunicator = null;
+    private SpikeCommunicator spikeCommunicator = null;
 
-    protected LegoLargeHubConnector(LegoLargeHub robot) {
+    protected SpikeConnector(Spike robot) {
         super(robot);
     }
 
@@ -28,14 +28,14 @@ public class LegoLargeHubConnector extends AbstractConnector<LegoLargeHub> {
     protected void runLoopBody() {
         switch ( this.state ) {
             case DISCOVER:
-                this.legoLargeHubCommunicator = new LegoLargeHubCommunicator(this.robot);
+                this.spikeCommunicator = new SpikeCommunicator(this.robot);
                 this.fire(State.WAIT_FOR_CONNECT_BUTTON_PRESS);
                 break;
             case CONNECT_BUTTON_IS_PRESSED:
                 this.token = OraTokenGenerator.generateToken();
                 this.fire(State.WAIT_FOR_SERVER);
 
-                this.brickData = this.legoLargeHubCommunicator.getDeviceInfo();
+                this.brickData = this.spikeCommunicator.getDeviceInfo();
                 this.brickData.put(KEY_TOKEN, this.token);
                 this.brickData.put(KEY_CMD, CMD_REGISTER);
                 LOG.info(this.brickData.toString());
@@ -62,7 +62,7 @@ public class LegoLargeHubConnector extends AbstractConnector<LegoLargeHub> {
                 }
                 break;
             case WAIT_FOR_CMD:
-                this.brickData = this.legoLargeHubCommunicator.getDeviceInfo();
+                this.brickData = this.spikeCommunicator.getDeviceInfo();
                 this.brickData.put(KEY_TOKEN, this.token);
                 this.brickData.put(KEY_CMD, CMD_PUSH);
                 try {
@@ -86,7 +86,7 @@ public class LegoLargeHubConnector extends AbstractConnector<LegoLargeHub> {
                                 os.write(program.getFirst());
                             }
                             this.fire(State.WAIT_UPLOAD);
-                                Pair<Integer, String> result = this.legoLargeHubCommunicator.handleUpload(tmp.getAbsolutePath());
+                                Pair<Integer, String> result = this.spikeCommunicator.handleUpload(tmp.getAbsolutePath());
                             if ( result.getFirst() != 0 ) {
                                 this.fire(State.ERROR_UPLOAD_TO_ROBOT.setAdditionalInfo(result.getSecond()));
                                 this.fire(State.WAIT_FOR_CMD);
