@@ -1,6 +1,7 @@
 package de.fhg.iais.roberta.ui.main;
 
-import de.fhg.iais.roberta.connection.wireless.IWirelessConnector;
+import de.fhg.iais.roberta.connection.wireless.AbstractWirelessConnector;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -179,7 +180,7 @@ public class MainController implements IController, IOraListenable<IRobot> {
             case WAIT_UPLOAD:
                 if ( this.connector.getRobot() instanceof IWirelessRobot ) {
                     String password = this.mainView.getRobotPassword();
-                    ((IWirelessConnector<IRobot>) this.connector).setPassword(password);
+                    ((AbstractWirelessConnector<IRobot>) this.connector).setPassword(password);
                 }
                 break;
             case WAIT_EXECUTION:

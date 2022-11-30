@@ -1,11 +1,11 @@
 package de.fhg.iais.roberta.connection;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Collection;
 
 import de.fhg.iais.roberta.util.IOraListener;
 import de.fhg.iais.roberta.util.PropertyHelper;
@@ -35,7 +35,7 @@ public abstract class AbstractConnector<T extends IRobot> implements IConnector<
     private boolean running = false;
 
     @Override
-    public void run() {
+    public final void run() {
         this.running = true;
         LOG.info("Starting {} connector with server address {}", this.robot.getName(), this.defaultServerAddress);
         while ( this.running ) {
@@ -112,10 +112,11 @@ public abstract class AbstractConnector<T extends IRobot> implements IConnector<
     }
 
     @Override
-    public void fire(State object) {
-        this.state = object;
+    public void fire(State newState) {
+        this.state = newState;
         for ( IOraListener<State> listener : this.listeners ) {
-            listener.update(object);
+            listener.update(newState);
         }
     }
 }
+

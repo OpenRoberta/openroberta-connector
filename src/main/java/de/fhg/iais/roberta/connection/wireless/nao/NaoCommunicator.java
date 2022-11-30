@@ -1,23 +1,22 @@
 package de.fhg.iais.roberta.connection.wireless.nao;
 
-import de.fhg.iais.roberta.connection.wireless.IWirelessCommunicator;
-import net.schmizz.sshj.connection.ConnectionException;
-import net.schmizz.sshj.transport.TransportException;
-import net.schmizz.sshj.userauth.UserAuthException;
-
-import org.apache.commons.lang3.SystemUtils;
-import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.apache.commons.lang3.SystemUtils;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import de.fhg.iais.roberta.connection.wireless.IWirelessCommunicator;
 import de.fhg.iais.roberta.util.PropertyHelper;
 import de.fhg.iais.roberta.util.SshConnection;
+import net.schmizz.sshj.connection.ConnectionException;
+import net.schmizz.sshj.transport.TransportException;
+import net.schmizz.sshj.userauth.UserAuthException;
 
 /**
  * Communicator class for the NAO robot. Handles network communication between the NAO and the connector.
@@ -29,10 +28,8 @@ public class NaoCommunicator implements IWirelessCommunicator {
 
     private final String name;
     private final InetAddress address;
-
-    private String password = "";
-
     private final String workingDirectory;
+    private String password = "";
     private String firmwareVersion = "";
 
     /**
@@ -52,10 +49,58 @@ public class NaoCommunicator implements IWirelessCommunicator {
     }
 
     /**
+     * Checks the NAO firmware version using the naoqi-bin installed on the NAO.
+     *
+     * @return the NAO firmware version
+     * @throws UserAuthException if the user is not correctly authorized
+     * @throws IOException if something with the ssh connection went wrong
+     */
+    public String checkFirmwareVersion() throws UserAuthException, IOException {
+        try (SshConnection ssh = new SshConnection(this.address, USERNAME, this.password)) {
+            String msg = ssh.command("naoqi-bin --version");
+            String version = msg.split("\n")[0].split(":")[1].trim();
+            this.firmwareVersion = version.replace(".", "-");
+            return this.firmwareVersion;
+        } catch ( TransportException | ConnectionException e ) {
+            throw new IOException(e);
+        }
+    }
+
+    /**
+     * Returns the JSON device info needed for the server.
+     *
+     * @return the device info as a json object
+     */
+    public JSONObject getDeviceInfo() {
+        JSONObject deviceInfo = new JSONObject();
+        deviceInfo.put("firmwarename", "Nao");
+        deviceInfo.put("robot", "nao");
+        deviceInfo.put("firmwareversion", this.firmwareVersion);
+        deviceInfo.put("macaddr", "usb");
+        deviceInfo.put("brickname", this.name);
+        deviceInfo.put("battery", "1.0");
+        return deviceInfo;
+    }
+
+    /**
+     * Sets the password for SSH communication with the NAO.
+     *
+     * @param password the password
+     */
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    @Override
+    public void stopProgram() throws IOException {
+        // not used for NAO
+    }
+
+    /**
      * Uploads a binary file to the NAO robot.
      *
      * @param binaryFile the content of the file
-     * @param fileName   the desired file name
+     * @param fileName the desired file name
      * @throws UserAuthException if the user is not correctly authorized
      * @throws IOException if something with the ssh connection or file transfer went wrong
      */
@@ -79,47 +124,5 @@ public class NaoCommunicator implements IWirelessCommunicator {
         } catch ( FileNotFoundException | TransportException | ConnectionException e ) {
             throw new IOException(e);
         }
-    }
-
-    /**
-     * Checks the NAO firmware version using the naoqi-bin installed on the NAO.
-     * @return the NAO firmware version
-     * @throws UserAuthException if the user is not correctly authorized
-     * @throws IOException if something with the ssh connection went wrong
-     */
-    public String checkFirmwareVersion() throws UserAuthException, IOException {
-        try (SshConnection ssh = new SshConnection(this.address, USERNAME, this.password)) {
-            String msg = ssh.command("naoqi-bin --version");
-            String version = msg.split("\n")[0].split(":")[1].trim();
-            this.firmwareVersion = version.replace(".", "-");
-            return this.firmwareVersion;
-        } catch ( TransportException | ConnectionException e ) {
-            throw new IOException(e);
-        }
-    }
-
-    /**
-     * Sets the password for SSH communication with the NAO.
-     *
-     * @param password the password
-     */
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    /**
-     * Returns the JSON device info needed for the server.
-     *
-     * @return the device info as a json object
-     */
-    public JSONObject getDeviceInfo() {
-        JSONObject deviceInfo = new JSONObject();
-        deviceInfo.put("firmwarename", "Nao");
-        deviceInfo.put("robot", "nao");
-        deviceInfo.put("firmwareversion", this.firmwareVersion);
-        deviceInfo.put("macaddr", "usb");
-        deviceInfo.put("brickname", this.name);
-        deviceInfo.put("battery", "1.0");
-        return deviceInfo;
     }
 }

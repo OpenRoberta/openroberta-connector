@@ -22,6 +22,7 @@ public interface IConnector<T extends IRobot> extends IOraListenable<IConnector.
         CONNECT_BUTTON_IS_PRESSED,
         WAIT_FOR_CMD,
         WAIT_UPLOAD,
+        WAIT_STOP_PROGRAM,
         WAIT_EXECUTION,
         DISCONNECT,
         WAIT_FOR_SERVER,
@@ -35,6 +36,7 @@ public interface IConnector<T extends IRobot> extends IOraListenable<IConnector.
         ERROR_UPLOAD_TO_ROBOT,
         ERROR_MISSING_PASSWORD,
         ERROR_PYTHON_REQUIRE,
+        ERROR_STOP_PROGRAM_CALLED,
         TOKEN_TIMEOUT;
 
         private List<String> additionalInfo = new ArrayList<>();
@@ -69,6 +71,7 @@ public interface IConnector<T extends IRobot> extends IOraListenable<IConnector.
     String CMD_ABORT = "abort";
     String CMD_UPDATE = "update";
     String CMD_DOWNLOAD = "download";
+    String CMD_STOP_PROGRAM = "stopprogram";
     String CMD_CONFIGURATION = "configuration";
 
     /**

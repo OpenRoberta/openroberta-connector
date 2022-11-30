@@ -56,6 +56,24 @@ public class RobotinoViewCommunicator implements IWirelessCommunicator {
             throw new IOException(e);
         }
     }
+
+    /**
+     * Stops any running Robotino program
+     *
+     * @throws UserAuthException if the user is not correctly authorized
+     * @throws IOException if something with the ssh connection or file transfer went wrong
+     */
+    public void stopProgram() throws UserAuthException, IOException {
+        if (password.isEmpty()){
+            password = "robotino";
+        }
+        try (SshConnection ssh = new SshConnection(this.address, USERNAME , this.password)) {
+                 LOG.info("stopping view program...");
+            ssh.command("pkill view");
+        } catch ( FileNotFoundException | TransportException | ConnectionException e ) {
+            throw new IOException(e);
+        }
+    }
         /**
      * Sets the password for SSH communication with the Robotino.
      *

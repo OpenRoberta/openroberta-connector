@@ -19,7 +19,7 @@ import static de.fhg.iais.roberta.connection.IConnector.State.ERROR_UPLOAD_TO_RO
  * Connector class for Wireless robots.
  * Handles state and communication between robot, connector and server.
  */
-public abstract class AbstractWirelessConnector<T extends IRobot> extends AbstractConnector<T> implements IWirelessConnector<T> {
+public abstract class AbstractWirelessConnector<T extends IRobot> extends AbstractConnector<T> {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractWirelessConnector.class);
 
@@ -41,7 +41,7 @@ public abstract class AbstractWirelessConnector<T extends IRobot> extends Abstra
     }
 
     @Override
-    protected void runLoopBody() {
+    protected final void runLoopBody() {
         switch (this.state) {
             case DISCOVER:
                 this.discover();
@@ -54,6 +54,9 @@ public abstract class AbstractWirelessConnector<T extends IRobot> extends Abstra
                 break;
             case WAIT_UPLOAD:
                 this.waitUpload();
+                break;
+            case WAIT_STOP_PROGRAM:
+                this.waitStopProgram();
                 break;
             case WAIT_EXECUTION:
                 LOG.info("Program execution finished - enter WAIT_FOR_CMD state again");
@@ -102,7 +105,7 @@ public abstract class AbstractWirelessConnector<T extends IRobot> extends Abstra
         }
     }
 
-    protected void waitForCmd() {
+    protected final void waitForCmd() {
         JSONObject deviceInfoWaitCMD = this.communicator.getDeviceInfo();
         deviceInfoWaitCMD.put(KEY_TOKEN, this.token);
         deviceInfoWaitCMD.put(KEY_CMD, CMD_PUSH);
@@ -115,6 +118,8 @@ public abstract class AbstractWirelessConnector<T extends IRobot> extends Abstra
                 // do nothing
             } else if (serverCommand.equals(CMD_DOWNLOAD)) {
                 this.fire(State.WAIT_UPLOAD);
+            } else if (serverCommand.equals(CMD_STOP_PROGRAM)) {
+                this.fire(State.WAIT_STOP_PROGRAM);
             } else {
                 LOG.info("WAIT_FOR_CMD {}", "Unexpected response from server");
                 this.resetLastConnectionData();
@@ -127,20 +132,8 @@ public abstract class AbstractWirelessConnector<T extends IRobot> extends Abstra
         }
     }
 
-    protected void waitUpload() {
-        try {
-            this.communicator.setPassword(this.password);
-            Pair<byte[], String> program = getProgram();
-            this.communicator.uploadFile(program.getFirst(), program.getSecond());
-            this.fire(State.WAIT_EXECUTION);
-        } catch (UserAuthException e) {
-            LOG.error("Could not authorize user: {}", e.getMessage());
-            this.reset(ERROR_AUTH);
-        } catch (IOException e) {
-            LOG.error("Something went wrong: {}", e.getMessage());
-            this.reset(ERROR_UPLOAD_TO_ROBOT);
-        }
-    }
+    abstract protected void waitUpload();
+    abstract protected void waitStopProgram();
 
     protected Pair<byte[], String> getProgram() throws IOException {
         JSONObject deviceInfo = this.communicator.getDeviceInfo();

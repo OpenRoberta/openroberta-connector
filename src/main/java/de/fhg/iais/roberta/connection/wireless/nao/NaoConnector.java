@@ -1,22 +1,17 @@
 package de.fhg.iais.roberta.connection.wireless.nao;
 
 import de.fhg.iais.roberta.connection.wireless.AbstractWirelessConnector;
-import de.fhg.iais.roberta.connection.wireless.IWirelessConnector;
 import de.fhg.iais.roberta.util.Pair;
 import net.schmizz.sshj.userauth.UserAuthException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-
-import static de.fhg.iais.roberta.connection.IConnector.State.ERROR_AUTH;
-import static de.fhg.iais.roberta.connection.IConnector.State.ERROR_UPLOAD_TO_ROBOT;
-
 /**
  * Connector class for NAO robots.
  * Handles state and communication between robot, connector and server.
  */
-public class NaoConnector extends AbstractWirelessConnector<Nao> implements IWirelessConnector<Nao> {
+public class NaoConnector extends AbstractWirelessConnector<Nao> {
     private static final Logger LOG = LoggerFactory.getLogger(NaoConnector.class);
 
 
@@ -44,10 +39,16 @@ public class NaoConnector extends AbstractWirelessConnector<Nao> implements IWir
             this.fire(State.WAIT_EXECUTION);
         } catch ( UserAuthException e ) {
             LOG.error("Could not authorize user: {}", e.getMessage());
-            this.reset(ERROR_AUTH);
+            this.reset(State.ERROR_AUTH);
         } catch ( IOException e ) {
             LOG.error("Something went wrong: {}", e.getMessage());
-            this.reset(ERROR_UPLOAD_TO_ROBOT);
+            this.reset(State.ERROR_UPLOAD_TO_ROBOT);
         }
+    }
+
+    @Override
+    protected void waitStopProgram() {
+        LOG.error("Stop program method not implemented");
+        this.reset(State.ERROR_STOP_PROGRAM_CALLED);
     }
 }

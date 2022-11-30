@@ -9,6 +9,7 @@ public interface IWirelessCommunicator {
 
     JSONObject getDeviceInfo();
 
+    void stopProgram() throws IOException;
     void uploadFile(byte[] binaryFile, String fileName) throws IOException;
 
     String checkFirmwareVersion() throws IOException;
