@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,6 +38,7 @@ public class Mbot2Communicator {
     private final List<Byte> fileContent = new ArrayList<>();
 
     private final Pattern responsePattern = Pattern.compile("f3(fa070001005ef001000((0)|(1))50|(f603000d00000d))f4");
+
 
     public Mbot2Communicator(IWiredRobot robot) {
         this.robot = robot;
@@ -211,19 +213,27 @@ public class Mbot2Communicator {
         return checksum;
     }
 
-    private Pair<Integer, String> sendPayload() {
+    private Pair<Integer, String> sendPayload() throws InterruptedException {
         Pair<Integer, String> result = new Pair<>(0, "Program successfully uploaded");
         int payloadLength;
         int writtenBytes;
+        int retries = 1;
+        int maxRetries = 3;
         if ( !serialPort.isOpen() ) {
             serialPort.openPort();
         }
-        for ( byte[] payload : payloads ) {
+        for ( int i = 0; i < payloads.size(); i++) {
+            byte[] payload = payloads.get(i);
             payloadLength = payload.length;
             writtenBytes = serialPort.writeBytes(payload, payloadLength);
             if ( writtenBytes != payloadLength || !receiveAnswer() ) {
-                result = new Pair<>(1, "Something went wrong while uploading the program. If this happens again, please reconnect the robot with the computer and try again");
-                break;
+                if ( retries++ >= maxRetries) {
+                    result = new Pair<>(1, "Something went wrong while uploading the program. If this happens again, please reconnect the robot with the computer and try again");
+                    break;
+                }
+                LOG.info("retry uploading program: " + retries + " of " + maxRetries);
+                Thread.sleep(1);
+                i = 0;
             }
         }
         if ( result.getFirst() == 0 ) {
@@ -233,7 +243,7 @@ public class Mbot2Communicator {
         return result;
     }
 
-    private boolean receiveAnswer() {
+    private boolean receiveAnswer() throws InterruptedException {
         short bufSize = 128;
         byte[] buf = new byte[bufSize];
         String bufAsHexString;
@@ -250,6 +260,7 @@ public class Mbot2Communicator {
                 }
                 return true;
             }
+            Thread.sleep(1);
         }
         LOG.error("Timeout: No response received");
         return false;
