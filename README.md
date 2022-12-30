@@ -11,6 +11,7 @@
 - mBot
 - NAO
 - Festo Bionics4Education (may require [this driver](https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers) on macOS)
+- Spike
 
 Standalone program for connecting robot hardware to the Open Roberta lab using
 an usb or ssh connection.

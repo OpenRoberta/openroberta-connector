@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,7 +36,6 @@ public class SpikeCommunicator {
     private SerialPort serialPort;
     private List<JSONObject> payloads;
     private byte[] fileContentEncoded;
-
 
     private boolean transferIdAdded = false;
 
@@ -186,7 +184,7 @@ public class SpikeCommunicator {
                     return new Pair<>(1, pair.getSecond());
                 }
                 LOG.info("Payload " + (i + 1) + " of " + payloads.size() + " uploaded");
-                TimeUnit.MILLISECONDS.sleep(100);
+                Thread.sleep(1);
             } else {
                 return new Pair<>(1, "Robot seems to be disconnected. Please reconnect the robot with the computer and upload the program again");
             }
@@ -211,7 +209,7 @@ public class SpikeCommunicator {
             if ( responseMatcher.find() ) {
                 return checkResponse(responseMatcher.group(), id, payload);
             }
-            TimeUnit.MILLISECONDS.sleep(200);
+            Thread.sleep(100);
         }
         LOG.error("Timeout: No response received from the robot");
         return new Pair<>(1, "No response received from the robot");
