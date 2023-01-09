@@ -31,6 +31,7 @@ public class SerialMonitorController implements IController {
     private Future<Void> serialLoggingFuture = null;
 
     private String portName = null;
+    private String robot;
 
     public SerialMonitorController(ResourceBundle rb) {
         this.serialMonitorView = new SerialMonitorView(rb, new SerialMonitorViewListener());
@@ -43,6 +44,7 @@ public class SerialMonitorController implements IController {
         LOG.debug("setConnector: {}", connector.getClass().getSimpleName());
         connector.registerListener(this::setState);
         this.portName = ((IWiredRobot) connector.getRobot()).getPort();
+        this.robot = connector.getRobot().getName();
     }
 
     @Override
@@ -68,6 +70,7 @@ public class SerialMonitorController implements IController {
     public void showSerialMonitor() {
         LOG.debug("showSerialMonitor");
 
+        this.serialMonitorView.setSerialRate(robot);
         this.serialMonitorView.setVisible(true);
 
         this.restartSerialLogging();

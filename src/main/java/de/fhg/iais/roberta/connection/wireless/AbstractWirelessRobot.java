@@ -22,7 +22,7 @@ public abstract class AbstractWirelessRobot implements IWirelessRobot {
     }
 
     @Override
-    public String getName() {
+    public String getPrettyName() {
         return this.name;
     }
 
@@ -40,7 +40,7 @@ public abstract class AbstractWirelessRobot implements IWirelessRobot {
             return false;
         }
         IWirelessRobot robot = (IWirelessRobot) obj;
-        return Objects.equals(this.name, robot.getName()) && Objects.equals(this.address, robot.getAddress());
+        return Objects.equals(this.name, robot.getPrettyName()) && Objects.equals(this.address, robot.getAddress());
     }
 
     @Override

@@ -38,7 +38,7 @@ public class NaoCommunicator implements IWirelessCommunicator {
      * @param nao the robot to communicate with
      */
     public NaoCommunicator(Nao nao) {
-        this.name = nao.getName();
+        this.name = nao.getPrettyName();
         this.address = nao.getAddress();
 
         if ( SystemUtils.IS_OS_WINDOWS ) {

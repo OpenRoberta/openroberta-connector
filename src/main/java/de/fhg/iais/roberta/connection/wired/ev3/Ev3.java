@@ -20,8 +20,8 @@ public class Ev3 extends AbstractWiredRobot {
     }
 
     @Override
-    public String getName() {
-        return super.getName() + ": " + this.getPort();
+    public String getPrettyName() {
+        return super.getPrettyName() + ": " + this.getPort();
     }
 
     @Override

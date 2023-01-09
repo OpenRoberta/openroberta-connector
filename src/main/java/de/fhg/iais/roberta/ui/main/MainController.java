@@ -35,8 +35,6 @@ import de.fhg.iais.roberta.connection.IConnector;
 import de.fhg.iais.roberta.connection.IConnector.State;
 import de.fhg.iais.roberta.connection.IRobot;
 import de.fhg.iais.roberta.connection.wired.IWiredRobot;
-import de.fhg.iais.roberta.connection.wired.arduino.Arduino;
-import de.fhg.iais.roberta.connection.wired.microbit.Microbit;
 import de.fhg.iais.roberta.connection.wireless.IWirelessRobot;
 import de.fhg.iais.roberta.main.UpdateHelper;
 import de.fhg.iais.roberta.main.UpdateInfo;
@@ -67,6 +65,7 @@ import static de.fhg.iais.roberta.ui.main.MainView.CMD_HELP;
 import static de.fhg.iais.roberta.ui.main.MainView.CMD_ID_EDITOR;
 import static de.fhg.iais.roberta.ui.main.MainView.CMD_SCAN;
 import static de.fhg.iais.roberta.ui.main.MainView.CMD_SERIAL;
+import de.fhg.iais.roberta.util.RobotPropertyHelper;
 import static java.awt.Image.SCALE_AREA_AVERAGING;
 
 public class MainController implements IController, IOraListenable<IRobot> {
@@ -132,7 +131,7 @@ public class MainController implements IController, IOraListenable<IRobot> {
 
     public void setRobotList(Set<? extends IRobot> robotList) {
         this.robotList = new ArrayList<>(robotList);
-        this.mainView.showTopRobots(this.robotList.stream().map(IRobot::getName).collect(Collectors.toList()));
+        this.mainView.showTopRobots(this.robotList.stream().map(IRobot::getPrettyName).collect(Collectors.toList()));
     }
 
     @Override
@@ -145,11 +144,11 @@ public class MainController implements IController, IOraListenable<IRobot> {
             case WAIT_FOR_CONNECT_BUTTON_PRESS:
                 this.connected = false;
 
-                this.mainView.setWaitForConnect(this.connector.getRobot().getName(), this.connector.getRobot().getConnectionType());
+                this.mainView.setWaitForConnect(this.connector.getRobot().getPrettyName(), this.connector.getRobot().getConnectionType());
 
                 if ( this.connector.getRobot() instanceof IWiredRobot ) {
                     this.mainView.showArduinoMenu();
-                    this.mainView.setArduinoMenuText(this.connector.getRobot().getName());
+                    this.mainView.setArduinoMenuText(this.connector.getRobot().getPrettyName());
                 }
                 break;
             case WAIT_FOR_SERVER:
@@ -168,7 +167,7 @@ public class MainController implements IController, IOraListenable<IRobot> {
                 this.mainView.setNew(
                     this.connector.getRobot().getConnectionType(),
                     this.rb.getString("name"),
-                    this.connector.getRobot().getName(),
+                    this.connector.getRobot().getPrettyName(),
                     this.connector.getCurrentServerAddress(),
                     false);
                 this.mainView.setWaitForCmd(this.connector.getRobot().getConnectionType());
@@ -242,9 +241,18 @@ public class MainController implements IController, IOraListenable<IRobot> {
 
         this.mainView.showTopTokenServer();
 
+        setSerialMonitorConnector(connector);
+    }
+
+    public void setSerialMonitorConnector(IConnector<?> connector) {
+        boolean hasSerial = RobotPropertyHelper.getInstance().hasSerial(this.connector.getRobot().getName());
         // Serial monitor is only needed for serial supporting robots
-        if ( (connector.getRobot() instanceof Arduino) || (connector.getRobot() instanceof Microbit) ) {
+        if ( hasSerial ) {
             this.serialMonitorController.setConnector(connector);
+            this.mainView.showSerialMonitorMenuItem();
+        } else {
+            LOG.info("Serial monitor is not supported by {}", this.connector.getRobot().getPrettyName());
+            this.mainView.hideSerialMonitorMenuItem();
         }
     }
 

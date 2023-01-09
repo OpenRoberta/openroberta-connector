@@ -83,7 +83,7 @@ class DetectorTests {
         IRobot selectedRobot = robotDetectorHelper.getSelectedRobot();
 
         assertThat(selectedRobot, isA(Ev3.class));
-        assertThat(selectedRobot.getName(), is("LEGO EV3: EV3"));
+        assertThat(selectedRobot.getPrettyName(), is("LEGO EV3: EV3"));
 
         robotTestListenable.fire(new Arduino(WiredRobotType.UNO, "1234"));
         selectedRobot = robotDetectorHelper.getSelectedRobot();
