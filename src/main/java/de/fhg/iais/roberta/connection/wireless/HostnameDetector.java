@@ -35,7 +35,7 @@ public class HostnameDetector implements IDetector {
                 detectedRobots.add(robot);
             }
         }
-        return detectedRobots.stream().filter(distinctByKey(IRobot::getName)).collect(Collectors.toList());
+        return detectedRobots.stream().filter(distinctByKey(IRobot::getPrettyName)).collect(Collectors.toList());
     }
 
     private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {

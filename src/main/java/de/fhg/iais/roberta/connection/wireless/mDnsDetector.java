@@ -77,7 +77,7 @@ public class mDnsDetector implements IDetector {
         }
 
         // Remove duplicates, filters the NAOs by name
-        return detectedRobots.stream().filter(distinctByKey(IRobot::getName)).collect(Collectors.toList());
+        return detectedRobots.stream().filter(distinctByKey(IRobot::getPrettyName)).collect(Collectors.toList());
     }
 
     /**

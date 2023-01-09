@@ -1,10 +1,12 @@
 package de.fhg.iais.roberta.ui.serialMonitor;
 
 import org.apache.commons.codec.Charsets;
+import org.apache.commons.lang3.ArrayUtils;
 
 import de.fhg.iais.roberta.ui.OraButton;
 import de.fhg.iais.roberta.ui.main.ImageHelper;
 import de.fhg.iais.roberta.util.IOraUiListener;
+import de.fhg.iais.roberta.util.RobotPropertyHelper;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -34,8 +36,9 @@ class SerialMonitorView extends JFrame {
 
     private final JPanel options = new JPanel();
     private final OraButton restartButton = new OraButton();
+    private final Integer[] baudrates = new Integer[] { 1200, 2400, 4800, 9600, 19200, 38400, 57600, 74880, 115200 };
     private final JComboBox<Integer> rateSelection = new JComboBox<>(
-        new Integer[] { 1200, 2400, 4800, 9600, 19200, 38400, 57600, 74880, 115200 });
+        baudrates);
     private final OraButton clearButton = new OraButton();
 
     SerialMonitorView(ResourceBundle messages, IOraUiListener listener) {
@@ -60,7 +63,7 @@ class SerialMonitorView extends JFrame {
         this.options.add(Box.createHorizontalGlue());
 
         this.options.add(this.restartButton);
-        this.restartButton.setText(messages.getString("restart"));
+        this.restartButton.setText(messages.getString(CMD_RESTART));
         this.restartButton.setActionCommand(CMD_RESTART);
         this.restartButton.addActionListener(listener);
 
@@ -81,6 +84,13 @@ class SerialMonitorView extends JFrame {
     int getSerialRate() {
         Object selected = this.rateSelection.getSelectedItem();
         return (selected != null) ? (int) selected : 0;
+    }
+
+    void setSerialRate(String robot) {
+        String robotBaudrate = RobotPropertyHelper.getInstance().getBaudRate(robot);
+        if (robotBaudrate != null) {
+            this.rateSelection.setSelectedIndex(ArrayUtils.indexOf(baudrates, Integer.parseInt(robotBaudrate)));
+        }
     }
 
     void appendText(byte[] bytes) {

@@ -29,7 +29,7 @@ public class RobotinoViewCommunicator implements IWirelessCommunicator {
     private String firmwareVersion = "1.0";
 
     public RobotinoViewCommunicator(Robotino robotino) {
-        this.name = robotino.getName();
+        this.name = robotino.getPrettyName();
         this.address = robotino.getAddress();
     }
 

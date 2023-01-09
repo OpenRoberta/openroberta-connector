@@ -9,6 +9,7 @@
 - ROB3RTA
 - Bot'n'Roll
 - mBot
+- mBot 2
 - NAO
 - Festo Bionics4Education (may require [this driver](https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers) on macOS)
 - Spike

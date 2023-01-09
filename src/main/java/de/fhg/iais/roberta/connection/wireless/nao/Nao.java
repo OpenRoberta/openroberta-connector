@@ -22,8 +22,13 @@ public class Nao extends AbstractWirelessRobot {
     }
 
     @Override
-    public String getName() {
-        return "NAO: " + super.getName();
+    public String getPrettyName() {
+        return "NAO: " + super.getPrettyName();
+    }
+
+    @Override
+    public String getName(){
+        return "nao";
     }
 
     @Override

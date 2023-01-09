@@ -13,9 +13,16 @@ public interface IRobot {
     }
 
     /**
-     * Returns the name of the robot.
+     * Returns the correct name of the robot.
      *
      * @return the name of the robot
+     */
+    String getPrettyName();
+
+    /**
+     * Returns the shortened name of the robot
+     *
+     * @return
      */
     String getName();
 
