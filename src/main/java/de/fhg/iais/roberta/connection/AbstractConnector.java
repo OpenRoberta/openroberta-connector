@@ -37,7 +37,7 @@ public abstract class AbstractConnector<T extends IRobot> implements IConnector<
     @Override
     public final void run() {
         this.running = true;
-        LOG.info("Starting {} connector with server address {}", this.robot.getName(), this.defaultServerAddress);
+        LOG.info("Starting {} connector with server address {}", this.robot.getPrettyName(), this.defaultServerAddress);
         while ( this.running ) {
             this.runLoopBody();
 

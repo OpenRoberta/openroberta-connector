@@ -49,7 +49,7 @@ public class Mbot2Communicator {
 
         deviceInfo.put("firmwarename", this.robot.getType().toString());
         deviceInfo.put("robot", this.robot.getType().toString());
-        deviceInfo.put("brickname", this.robot.getName());
+        deviceInfo.put("brickname", this.robot.getPrettyName());
 
         return deviceInfo;
     }

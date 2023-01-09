@@ -21,8 +21,13 @@ public abstract class AbstractWiredRobot implements IWiredRobot {
     }
 
     @Override
-    public String getName() {
+    public String getPrettyName() {
         return this.type.getPrettyText();
+    }
+
+    @Override
+    public String getName() {
+        return this.type.toString();
     }
 
     @Override

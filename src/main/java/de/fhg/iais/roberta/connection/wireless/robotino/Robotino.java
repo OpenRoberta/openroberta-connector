@@ -13,8 +13,13 @@ public class Robotino extends AbstractWirelessRobot {
     }
 
     @Override
-    public String getName() {
+    public String getPrettyName() {
         return "Robotino";
+    }
+
+    @Override
+    public String getName() {
+        return "robotino";
     }
 
     @Override

@@ -1,20 +1,6 @@
 package de.fhg.iais.roberta.ui.main;
 
-import org.apache.commons.lang3.SystemUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -23,43 +9,22 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.InputMap;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.KeyStroke;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingConstants;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.WindowConstants;
+import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.text.DefaultEditorKit;
+
+import org.apache.commons.lang3.SystemUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.fhg.iais.roberta.connection.IRobot.ConnectionType;
 import de.fhg.iais.roberta.main.UpdateInfo.Status;
 import de.fhg.iais.roberta.ui.OraButton;
 import de.fhg.iais.roberta.ui.OraToggleButton;
 import de.fhg.iais.roberta.ui.UiState;
+import static de.fhg.iais.roberta.ui.main.ImageHelper.getGif;
 import de.fhg.iais.roberta.util.IOraUiListener;
 import de.fhg.iais.roberta.util.Pair;
-
-import static de.fhg.iais.roberta.ui.main.ImageHelper.getGif;
 
 public class MainView extends JFrame {
     private static final Logger LOG = LoggerFactory.getLogger(MainView.class);
@@ -557,6 +522,7 @@ public class MainView extends JFrame {
     }
 
     // Listeners
+
     private void setActionListener(ActionListener listener) {
         this.menuItemIdEditor.addActionListener(listener);
         this.menuItemClose.addActionListener(listener);
@@ -570,7 +536,6 @@ public class MainView extends JFrame {
         this.butCustom.addActionListener(listener);
         this.butCopy.addActionListener(listener);
     }
-
     private void setWindowListener(WindowListener windowListener) {
         this.addWindowListener(windowListener);
     }
@@ -581,6 +546,7 @@ public class MainView extends JFrame {
     }
 
     // States
+
     void setDiscover() {
         this.txtFldPreToken.setText("");
         this.txtFldToken.setText("");
@@ -599,7 +565,6 @@ public class MainView extends JFrame {
         this.showTopRobots(Collections.emptyList());
         this.showCustomAddress();
     }
-
     void setWaitForConnect(String robotName, ConnectionType connectionType) {
         this.butRobot.setState(UiState.DISCOVERED);
         this.butConnect.setEnabled(true);
@@ -656,14 +621,20 @@ public class MainView extends JFrame {
     }
 
     // Individual settings and functions
-
-    // Arduino
     void showArduinoMenu() {
         this.menuArduino.setVisible(true);
     }
 
     private void hideArduinoMenu() {
         this.menuArduino.setVisible(false);
+    }
+
+    void showSerialMonitorMenuItem() {
+        this.menuItemSerial.setVisible(true);
+    }
+
+    void hideSerialMonitorMenuItem() {
+        this.menuItemSerial.setVisible(false);
     }
 
     void setArduinoMenuText(String text) {
