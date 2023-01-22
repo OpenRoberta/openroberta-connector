@@ -50,11 +50,10 @@ public class SerialMonitorController implements IController {
         LOG.debug("setState: {}", state);
         switch ( state ) {
             case DISCOVER:
-                this.stopSerialLogging();
-                break;
             case WAIT_UPLOAD:
                 this.stopSerialLogging();
                 break;
+            case WAIT_FOR_CMD:
             case WAIT_EXECUTION:
                 if ( this.serialMonitorView.isVisible() ) {
                     this.restartSerialLogging();
