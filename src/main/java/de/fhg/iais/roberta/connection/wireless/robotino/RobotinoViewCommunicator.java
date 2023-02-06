@@ -5,6 +5,7 @@ import de.fhg.iais.roberta.util.SshConnection;
 import net.schmizz.sshj.connection.ConnectionException;
 import net.schmizz.sshj.transport.TransportException;
 import net.schmizz.sshj.userauth.UserAuthException;
+
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,17 +42,26 @@ public class RobotinoViewCommunicator implements IWirelessCommunicator {
      * @throws IOException if something with the ssh connection or file transfer went wrong
      */
     public void uploadFile(byte[] binaryFile, String fileName) throws UserAuthException, IOException {
-        if (password.isEmpty()){
+        if ( password.isEmpty() ) {
             password = "robotino";
         }
-        try (SshConnection ssh = new SshConnection(this.address, USERNAME , this.password)) {
+        try (SshConnection ssh = new SshConnection(this.address, USERNAME, this.password)) {
 
             ssh.copyLocalToRemote(binaryFile, "/home/robotino/openRoberta", "NEPOprog.py");
 
             LOG.info("starting view program...");
             //execute launch script and immediately move on
             ssh.command("pkill view");
-            ssh.command("/opt/robview4/bin/robview4_interpreter -f /home/robotino/openRoberta/NEPOview.rvwx"  + "&> /dev/null & disown $!");
+            ssh.command("curl -X PUT -H " +
+                "\"Content-Type: application/json\" -d '" +
+                    "{\"action\": \"<img class='\\''startStopImage'\\'' " +
+                        "src='\\''images/start.png'\\''>\"," +
+                        "\"id\": 1," +
+                        "\"" + "name\": \"NEPOview\"," +
+                        "\"old\": \"NEPOview\",\"suffix\": \"rvwx\"," +
+                        "\"undefined\": \"undefined\"}'" +
+                        " \"http://localhost/data/startStopProgram?sid=NEPO\"");
+
         } catch ( FileNotFoundException | TransportException | ConnectionException e ) {
             throw new IOException(e);
         }
@@ -64,17 +74,18 @@ public class RobotinoViewCommunicator implements IWirelessCommunicator {
      * @throws IOException if something with the ssh connection or file transfer went wrong
      */
     public void stopProgram() throws UserAuthException, IOException {
-        if (password.isEmpty()){
+        if ( password.isEmpty() ) {
             password = "robotino";
         }
-        try (SshConnection ssh = new SshConnection(this.address, USERNAME , this.password)) {
-                 LOG.info("stopping view program...");
+        try (SshConnection ssh = new SshConnection(this.address, USERNAME, this.password)) {
+            LOG.info("stopping view program...");
             ssh.command("pkill view");
         } catch ( FileNotFoundException | TransportException | ConnectionException e ) {
             throw new IOException(e);
         }
     }
-        /**
+
+    /**
      * Sets the password for SSH communication with the Robotino.
      *
      * @param password the password
