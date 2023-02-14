@@ -86,7 +86,7 @@ public class SpikeConnector extends AbstractConnector<Spike> {
                                 os.write(program.getFirst());
                             }
                             this.fire(State.WAIT_UPLOAD);
-                                Pair<Integer, String> result = this.spikeCommunicator.handleUpload(tmp.getAbsolutePath());
+                            Pair<Integer, String> result = this.spikeCommunicator.handleUpload(tmp.getAbsolutePath());
                             if ( result.getFirst() != 0 ) {
                                 this.fire(State.ERROR_UPLOAD_TO_ROBOT.setAdditionalInfo(result.getSecond()));
                                 this.fire(State.WAIT_FOR_CMD);
