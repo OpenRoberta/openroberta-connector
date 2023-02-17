@@ -209,7 +209,7 @@ public class SpikeCommunicator {
             if ( responseMatcher.find() ) {
                 return checkResponse(responseMatcher.group(), id, payload);
             }
-            Thread.sleep(100);
+            Thread.sleep(10);
         }
         LOG.error("Timeout: No response received from the robot");
         return new Pair<>(1, "No response received from the robot");
