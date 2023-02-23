@@ -80,6 +80,15 @@ public class RobotinoViewCommunicator implements IWirelessCommunicator {
         try (SshConnection ssh = new SshConnection(this.address, USERNAME, this.password)) {
             LOG.info("stopping view program...");
             ssh.command("pkill view");
+            ssh.command("curl -X PUT -H " +
+                "\"Content-Type: application/json\" -d '" +
+                "{\"action\": \"<img class='\\''startStopImage'\\'' " +
+                "src='\\''images/start.png'\\''>\"," +
+                "\"id\": 1," +
+                "\"" + "name\": \"NEPOview\"," +
+                "\"old\": \"NEPOview\",\"suffix\": \"rvwx\"," +
+                "\"undefined\": \"undefined\"}'" +
+                " \"http://localhost/data/startStopProgram?sid=NEPO\"");
         } catch ( FileNotFoundException | TransportException | ConnectionException e ) {
             throw new IOException(e);
         }
