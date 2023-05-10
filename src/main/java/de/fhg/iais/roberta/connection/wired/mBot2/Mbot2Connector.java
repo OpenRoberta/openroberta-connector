@@ -69,7 +69,7 @@ public class Mbot2Connector extends AbstractConnector<Mbot2> {
                             try {
                                 Pair<byte[], String> program = this.serverCommunicator.downloadProgram(this.brickData);
                                 if ( program.getFirst().length > 65534 ) {
-                                    this.fire(State.ERROR_UPLOAD_TO_ROBOT.setAdditionalInfo("Program too large for robot. Must be less than 65534 bytes"));
+                                    this.fire(State.ERROR_UPLOAD_TO_ROBOT.setAdditionalInfo("errorRobotProgramTooLarge"));
                                     this.fire(State.WAIT_FOR_CMD);
                                     break;
                                 }

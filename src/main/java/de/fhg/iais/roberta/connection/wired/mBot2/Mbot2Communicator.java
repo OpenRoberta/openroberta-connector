@@ -63,7 +63,7 @@ public class Mbot2Communicator {
             return sendPayload();
         } catch ( Exception e ) {
             LOG.info(e.getMessage());
-            return new Pair<>(1, "Error while uploading file");
+            return new Pair<>(1, "errorRobotUpload");
         }
     }
 
@@ -172,7 +172,7 @@ public class Mbot2Communicator {
             frame = new ArrayList<>();
             data = new ArrayList<>();
 
-            dataSizeToSend = Math.min(maxSize, this.fileContent.size()-sentData);
+            dataSizeToSend = Math.min(maxSize, this.fileContent.size() - sentData);
             sentDataArray = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(sentData).array();
             for ( byte value : sentDataArray ) {
                 data.add(value);
@@ -222,13 +222,13 @@ public class Mbot2Communicator {
         if ( !serialPort.isOpen() ) {
             serialPort.openPort();
         }
-        for ( int i = 0; i < payloads.size(); i++) {
+        for ( int i = 0; i < payloads.size(); i++ ) {
             byte[] payload = payloads.get(i);
             payloadLength = payload.length;
             writtenBytes = serialPort.writeBytes(payload, payloadLength);
             if ( writtenBytes != payloadLength || !receiveAnswer() ) {
-                if ( retries++ >= maxRetries) {
-                    result = new Pair<>(1, "Something went wrong while uploading the program. If this happens again, please reconnect the robot with the computer and try again");
+                if ( retries++ >= maxRetries ) {
+                    result = new Pair<>(1, "errorRobotUpload");
                     break;
                 }
                 LOG.info("retry uploading program: " + retries + " of " + maxRetries);
