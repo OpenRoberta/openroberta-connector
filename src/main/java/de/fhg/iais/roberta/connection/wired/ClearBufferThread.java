@@ -18,7 +18,7 @@ public class ClearBufferThread extends Thread {
         this.portName = (SystemUtils.IS_OS_WINDOWS ? "" : "/dev/") + portName;
     }
 
-    public boolean exit() throws InterruptedException {
+    public boolean exit(){
         if ( thread != null && thread.isAlive() ) {
             exitThread = true;
         }
@@ -40,6 +40,7 @@ public class ClearBufferThread extends Thread {
                 LOG.info(e.getMessage());
             }
         }
+        exit();
         LOG.info("Stop clearing buffer");
     }
 

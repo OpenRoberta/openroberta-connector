@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -38,11 +37,11 @@ public class SpikeCommunicator {
     private byte[] fileContentEncoded;
 
     private boolean transferIdAdded = false;
+    private boolean resendStarWriteProgramPayload = true;
 
     SpikeCommunicator(IWiredRobot robot) {
         this.robot = robot;
         this.clearBufferThread = new ClearBufferThread(robot.getPort());
-        initSerialPort(this.robot.getPort());
     }
 
     public JSONObject getDeviceInfo() {
@@ -55,9 +54,10 @@ public class SpikeCommunicator {
     }
 
     public Pair<Integer, String> handleUpload(String absolutePath) {
-        Pair<Integer, String> result;
+        Pair<Integer, String> result = new Pair<>(1, "errorRobotUpload");
         try {
-            stopClearBufferThrad();
+            stopClearBufferThread();
+            initSerialPort(this.robot.getPort());
 
             extractFileInformation(absolutePath);
             createJsonPayloads();
@@ -66,11 +66,11 @@ public class SpikeCommunicator {
             LOG.info(result.getSecond());
         } catch ( Exception e ) {
             LOG.info(e.getMessage());
-            result = new Pair<>(1, "An error occured while uploading. If this happens again please reconnect the robot with the computer");
         }
 
-        startClearBufferThread();
         transferIdAdded = false;
+        resendStarWriteProgramPayload = true;
+        startClearBufferThread();
         return result;
     }
 
@@ -162,16 +162,18 @@ public class SpikeCommunicator {
                 payload.getJSONObject("p").put("transferid", transferId);
             }
         }
+        transferIdAdded = true;
     }
 
     private Pair<Integer, String> sendPayloads() throws InterruptedException, JSONException {
-        Pair<Integer, String> result = new Pair<>(0, "Program successfully uploaded");
-
+        Pair<Integer, String> result = new Pair<>(1, "errorRobotUpload");
+        int payloadSize = payloads.size();
         if ( !serialPort.isOpen() ) {
             serialPort.openPort();
         }
         LOG.info("Program upload starts");
-        for ( int i = 0; i < payloads.size(); i++ ) {
+        for ( int i = 0; i < payloadSize; i++ ) {
+            LOG.info("sending payload " + (i + 1) + " of " + payloadSize);
             JSONObject payload = payloads.get(i);
             String payloadAsString = payload + "\r";
             byte[] payloadAsBytes = payloadAsString.getBytes(StandardCharsets.UTF_8);
@@ -179,14 +181,16 @@ public class SpikeCommunicator {
             int bytesWritten = serialPort.writeBytes(payloadAsBytes, payloadLength);
 
             if ( bytesWritten == payloadLength ) {
-                Pair<Integer, String> pair = receiveResponse(payload);
-                if ( pair.getFirst() == 1 ) {
-                    return new Pair<>(1, pair.getSecond());
-                }
-                LOG.info("Payload " + (i + 1) + " of " + payloads.size() + " uploaded");
                 Thread.sleep(1);
+                result = receiveResponse(payload);
+                if ( result.getFirst() == 1 ) {
+                    break;
+                } else if ( result.getFirst() == 2 ) {
+                    resendStarWriteProgramPayload = false;
+                    i--;
+                }
             } else {
-                return new Pair<>(1, "Robot seems to be disconnected. Please reconnect the robot with the computer and upload the program again");
+                break;
             }
         }
         return result;
@@ -194,68 +198,58 @@ public class SpikeCommunicator {
 
     private Pair<Integer, String> receiveResponse(JSONObject payload) throws InterruptedException, JSONException {
         String id = payload.getString("i");
-        Pattern findResponsePattern = Pattern.compile("\\{.*" + id + ".*}");
+        Pattern findResponsePattern = Pattern.compile("(\\{.*(" + id + "|\"i\"|\"r\"|transferid|checksum|next_ptr){1}.*}?)");
         short bufSize = 2048;
         byte[] buffer = new byte[bufSize];
         long time = System.currentTimeMillis();
-        while ( (System.currentTimeMillis()) - time < 10000 ) {
+
+        while ( (System.currentTimeMillis()) - time < 12000 ) {
             int bytesAvailable = serialPort.bytesAvailable();
             if ( bytesAvailable < 0 ) {
-                return new Pair<>(1, "Robot seems to be disconnected. Please reconnect the robot with the computer and upload the program again");
+                LOG.error("Error: Robot seems disconnected");
+                return new Pair<>(1, "errorRobotUpload");
             }
             serialPort.readBytes(buffer, Math.min(bytesAvailable, bufSize));
             String answer = new String(buffer, StandardCharsets.UTF_8);
             Matcher responseMatcher = findResponsePattern.matcher(answer);
             if ( responseMatcher.find() ) {
-                return checkResponse(responseMatcher.group(), id, payload);
+                return checkResponse(responseMatcher.group(), id, payload.getString("m"));
             }
             Thread.sleep(10);
         }
-        LOG.error("Timeout: No response received from the robot");
-        return new Pair<>(1, "No response received from the robot");
+        LOG.error("Error: No response received from the robot");
+        return new Pair<>(1, "errorRobotUpload");
     }
 
-    private Pair<Integer, String> checkResponse(String response, String id, JSONObject payload) throws JSONException {
+    private Pair<Integer, String> checkResponse(String response, String id, String mode) throws JSONException {
         try {
             JSONObject jsonAnswer = new JSONObject(response);
             if ( jsonAnswer.has("e") ) {
                 String error = new String(Base64.getDecoder().decode(jsonAnswer.getString("e")), StandardCharsets.UTF_8);
-                LOG.error("The robot threw an error. Please try uploading the program again.\n\n" + error);
-                return new Pair<>(1, "An error occured on the robot while transmitting the payload:\n\n" + error);
+                LOG.error("Error from the robot: {}", error);
+                return new Pair<>(1, "errorRobotUpload");
             }
-            if ( jsonAnswer.has("i") && jsonAnswer.getString("i").equals(id) ) {
-                if ( !jsonAnswer.get("r").equals(JSONObject.NULL) ) {
-                    JSONObject r = jsonAnswer.getJSONObject("r");
-                    if ( !transferIdAdded && r.has("transferid") ) {
-                        addTransferIdToWritePackage(jsonAnswer.getJSONObject("r").getString("transferid"));
-                        transferIdAdded = true;
-                    }
-                    if ( r.has("checksum") ) {
-                        String data = payload.getJSONObject("p").getString("data");
-                        String checksum = jsonAnswer.getJSONObject("r").getString("checksum");
-                        return validateChecksum(checksum, data);
-                    }
-                }
-                return new Pair<>(0, "Everything worked");
+            if ( !transferIdAdded && !jsonAnswer.get("r").equals(JSONObject.NULL) && jsonAnswer.getJSONObject("r").has("transferid") ) {
+                addTransferIdToWritePackage(jsonAnswer.getJSONObject("r").getString("transferid"));
             }
-            return new Pair<>(1, "IDs didn't match");
         } catch ( JSONException e ) {
-            LOG.info("Broken response detected. Ignoring and continuing with upload");
-            return new Pair<>(0, "Ignoring and sending next payload");
+            if ( mode.equals("start_write_program") ) {
+                if ( !resendStarWriteProgramPayload ) {
+                    return new Pair<>(1, "errorRobotUpload");
+                }
+                LOG.info("Response with transferId is broken. Sending payload again");
+                return new Pair<>(2, "");
+            }
+            LOG.info("Broken response detected. Ignoring and continuing the upload. Response: " + response);
         }
-    }
-
-    private Pair<Integer, String> validateChecksum(String checksum, String base64Data) {
-        byte[] decoded = Base64.getDecoder().decode(base64Data);
-        String hash = new DigestUtils("SHA-256").digestAsHex(decoded);
-        return checksum.equals(hash) ? new Pair<>(0, "Checksum is correct") : new Pair<>(1, "The SHA-256 checksums didnt match");
+        return new Pair<>(0, "");
     }
 
     private void startClearBufferThread() {
         clearBufferThread.start(serialPort);
     }
 
-    private void stopClearBufferThrad() throws InterruptedException {
+    private void stopClearBufferThread() {
         clearBufferThread.exit();
     }
 }

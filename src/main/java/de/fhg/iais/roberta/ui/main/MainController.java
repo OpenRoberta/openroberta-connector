@@ -71,7 +71,7 @@ public class MainController implements IController, IOraListenable<IRobot> {
     private static final Logger LOG = LoggerFactory.getLogger(MainController.class);
 
     private static final String FILENAME_ROBERTA = "Roberta.png";
-    private static final int UPLOAD_ERROR_LINES = 4;
+    private static final int UPLOAD_ERROR_LINES = 5;
 
     private final Collection<IOraListener<IRobot>> listeners = new ArrayList<>(5);
 
@@ -204,10 +204,13 @@ public class MainController implements IController, IOraListenable<IRobot> {
                 break;
             case ERROR_UPLOAD_TO_ROBOT:
                 List<String> additionalInfo = new ArrayList<>(state.getAdditionalInfo());
-                if (additionalInfo.isEmpty()) {
+                if ( additionalInfo.isEmpty() ) {
                     this.showAttentionPopup("errorUploadToRobot", "");
                 } else {
                     String errorOutput = additionalInfo.get(0);
+                    if ( rb.containsKey(errorOutput) ) {
+                        errorOutput = rb.getString(errorOutput);
+                    }
                     this.showAttentionPopup("errorUploadToRobot", getLastNLines(errorOutput, UPLOAD_ERROR_LINES));
                 }
                 break;
@@ -279,7 +282,7 @@ public class MainController implements IController, IOraListenable<IRobot> {
     }
 
     private void showAttentionPopup(String key, String... entries) {
-        OraPopup.showPopup(this.mainView, "attention", key, this.rb, null, new String[] { "ok" }, entries);
+        OraPopup.showPopup(this.mainView, "attention", key, this.rb, null, new String[] {"ok"}, entries);
     }
 
     @Override
@@ -397,12 +400,12 @@ public class MainController implements IController, IOraListenable<IRobot> {
 
         private void showAboutPopup() {
             OraPopup.showPopup(MainController.this.mainView,
-                               "about",
-                               "aboutInfo",
-                               MainController.this.rb,
-                               new ImageIcon(ImageHelper.getIcon("iais_logo.gif").getImage().getScaledInstance(100, 27, SCALE_AREA_AVERAGING)),
-                               new String[] { "ok" },
-                               PropertyHelper.getInstance().getProperty("version"));
+                "about",
+                "aboutInfo",
+                MainController.this.rb,
+                new ImageIcon(ImageHelper.getIcon("iais_logo.gif").getImage().getScaledInstance(100, 27, SCALE_AREA_AVERAGING)),
+                new String[] {"ok"},
+                PropertyHelper.getInstance().getProperty("version"));
         }
 
         private void toggleHelp() {
@@ -453,11 +456,11 @@ public class MainController implements IController, IOraListenable<IRobot> {
                 int
                     n =
                     OraPopup.showPopup(MainController.this.mainView,
-                                       "attention",
-                                       "confirmCloseInfo",
-                                       MainController.this.rb,
-                                       ImageHelper.getIcon(FILENAME_ROBERTA),
-                                       buttons);
+                        "attention",
+                        "confirmCloseInfo",
+                        MainController.this.rb,
+                        ImageHelper.getIcon(FILENAME_ROBERTA),
+                        buttons);
                 if ( n == 0 ) {
                     if ( MainController.this.connector != null ) {
                         MainController.this.connector.close();
