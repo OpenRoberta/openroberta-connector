@@ -6,7 +6,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import de.fhg.iais.roberta.ui.OraButton;
 import de.fhg.iais.roberta.ui.main.ImageHelper;
 import de.fhg.iais.roberta.util.IOraUiListener;
-import de.fhg.iais.roberta.util.RobotPropertyHelper;
+import de.fhg.iais.roberta.util.PropertyHelper;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -17,6 +17,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -87,8 +88,8 @@ class SerialMonitorView extends JFrame {
     }
 
     void setSerialRate(String robot) {
-        String robotBaudrate = RobotPropertyHelper.getInstance().getBaudRate(robot);
-        if (robotBaudrate != null) {
+        String robotBaudrate = PropertyHelper.getInstance().getProperty(robot + ".serial.baudrate");
+        if ( robotBaudrate != null ) {
             this.rateSelection.setSelectedIndex(ArrayUtils.indexOf(baudrates, Integer.parseInt(robotBaudrate)));
         }
     }

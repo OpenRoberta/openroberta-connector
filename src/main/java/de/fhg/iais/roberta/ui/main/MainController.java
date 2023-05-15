@@ -65,7 +65,6 @@ import static de.fhg.iais.roberta.ui.main.MainView.CMD_HELP;
 import static de.fhg.iais.roberta.ui.main.MainView.CMD_ID_EDITOR;
 import static de.fhg.iais.roberta.ui.main.MainView.CMD_SCAN;
 import static de.fhg.iais.roberta.ui.main.MainView.CMD_SERIAL;
-import de.fhg.iais.roberta.util.RobotPropertyHelper;
 import static java.awt.Image.SCALE_AREA_AVERAGING;
 
 public class MainController implements IController, IOraListenable<IRobot> {
@@ -245,7 +244,7 @@ public class MainController implements IController, IOraListenable<IRobot> {
     }
 
     public void setSerialMonitorConnector(IConnector<?> connector) {
-        boolean hasSerial = RobotPropertyHelper.getInstance().hasSerial(this.connector.getRobot().getName());
+        boolean hasSerial = PropertyHelper.getInstance().getProperty(this.connector.getRobot().getName() + ".serial.baudrate") != null;
         // Serial monitor is only needed for serial supporting robots
         if ( hasSerial ) {
             this.serialMonitorController.setConnector(connector);
