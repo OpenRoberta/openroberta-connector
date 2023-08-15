@@ -6,8 +6,8 @@
     <version>1.6.4-SNAPSHOT</version>
     <scm>
         <developerConnection>scm:git:git@github.com:OpenRoberta/openroberta-connector.git</developerConnection>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
 
     <properties>
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
@@ -66,7 +66,7 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20190722</version>
+            <version>20230227</version>
         </dependency>
         <dependency>
             <groupId>org.asynchttpclient</groupId>
@@ -353,8 +353,8 @@
                         <phase>install</phase>
                         <configuration>
                             <target>
-                                <copy file="${basedir}/target/${project.artifactId}-${project.version}.jar" tofile="${basedir}/installers/linux/${project.artifactId}.jar" />
-                                <copy file="${basedir}/target/${project.artifactId}-${project.version}.jar" tofile="${basedir}/installers/osx/${project.artifactId}.jar" />
+                                <copy file="${basedir}/target/${project.artifactId}-${project.version}.jar" tofile="${basedir}/installers/linux/${project.artifactId}.jar"/>
+                                <copy file="${basedir}/target/${project.artifactId}-${project.version}.jar" tofile="${basedir}/installers/osx/${project.artifactId}.jar"/>
                             </target>
                         </configuration>
                         <goals>
@@ -366,7 +366,7 @@
                         <phase>install</phase>
                         <configuration>
                             <target>
-                                <chmod file="${basedir}/installers/linux/install-connector" perm="755" />
+                                <chmod file="${basedir}/installers/linux/install-connector" perm="755"/>
                             </target>
                         </configuration>
                         <goals>
