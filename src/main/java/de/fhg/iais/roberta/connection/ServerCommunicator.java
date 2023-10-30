@@ -214,8 +214,8 @@ public class ServerCommunicator {
         } else {
             prefix = "http://";
         }
-        this.serverUpdateAddress = prefix + customServerAddress + "/update/nao/%s/hal";
-        this.serverUpdateChecksumAddress = prefix + customServerAddress + "/update/nao/%s/hal/checksum";
+        this.serverUpdateAddress = prefix + customServerAddress + "/rest/update/nao/%s/hal";
+        this.serverUpdateChecksumAddress = prefix + customServerAddress + "/rest/update/nao/%s/hal/checksum";
         if ( SystemUtils.IS_OS_WINDOWS ) {
             this.halZipPath = System.getenv("APPDATA") + '/' + PropertyHelper.getInstance().getProperty("artifactId") + "/roberta.zip";
             this.workingDirectory = System.getenv("APPDATA") + '/' + PropertyHelper.getInstance().getProperty("artifactId") + '/';
