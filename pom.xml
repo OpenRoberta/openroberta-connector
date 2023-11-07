@@ -3,10 +3,10 @@
 
     <groupId>de.fhg.iais.roberta</groupId>
     <artifactId>OpenRobertaConnector</artifactId>
-    <version>1.6.5-SNAPSHOT</version>
+    <version>1.6.5</version>
     <scm>
         <developerConnection>scm:git:git@github.com:OpenRoberta/openroberta-connector.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>v1.6.5</tag>
     </scm>
 
     <properties>
@@ -328,8 +328,8 @@
                         <phase>install</phase>
                         <configuration>
                             <target>
-                                <copy file="${basedir}/target/${project.artifactId}-${project.version}.jar" tofile="${basedir}/installers/linux/${project.artifactId}.jar"/>
-                                <copy file="${basedir}/target/${project.artifactId}-${project.version}.jar" tofile="${basedir}/installers/osx/${project.artifactId}.jar"/>
+                                <copy file="${basedir}/target/${project.artifactId}-${project.version}.jar" tofile="${basedir}/installers/linux/${project.artifactId}.jar" />
+                                <copy file="${basedir}/target/${project.artifactId}-${project.version}.jar" tofile="${basedir}/installers/osx/${project.artifactId}.jar" />
                             </target>
                         </configuration>
                         <goals>
@@ -341,7 +341,7 @@
                         <phase>install</phase>
                         <configuration>
                             <target>
-                                <chmod file="${basedir}/installers/linux/install-connector" perm="755"/>
+                                <chmod file="${basedir}/installers/linux/install-connector" perm="755" />
                             </target>
                         </configuration>
                         <goals>
