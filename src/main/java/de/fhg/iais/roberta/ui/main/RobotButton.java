@@ -1,20 +1,18 @@
 package de.fhg.iais.roberta.ui.main;
 
-import javax.swing.BorderFactory;
-import javax.swing.ButtonModel;
-import javax.swing.JButton;
-import java.awt.Color;
+import java.awt.*;
+
+import javax.swing.*;
 
 import de.fhg.iais.roberta.ui.UiState;
-
 import static de.fhg.iais.roberta.ui.main.MainView.BACKGROUND_COLOR;
 
 class RobotButton extends JButton {
     private static final Color ROBOT_HOVER_COLOR = Color.decode("#eeeeee");
 
-    private static final String FILENAME_NOT_DISCOVERED = "Roberta_Menu_Icon_grey.png";
-    private static final String FILENAME_DISCOVERED = "Roberta_Menu_Icon_green.png";
-    private static final String FILENAME_CONNECTED = "Roberta_Menu_Icon_red.png";
+    private static final String FILENAME_NOT_DISCOVERED = "RobertaNotDiscovered.png";
+    private static final String FILENAME_DISCOVERED = "RobertaDiscovered.png";
+    private static final String FILENAME_CONNECTED = "RobertaConnected.png";
 
     RobotButton() {
         this.setBackground(BACKGROUND_COLOR);
@@ -31,21 +29,21 @@ class RobotButton extends JButton {
         this.setState(UiState.DISCOVERING);
 
         this.setBorderPainted(true);
-        this.setBorder(BorderFactory.createEmptyBorder(2,2,2,2));
+        this.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
         this.setFocusPainted(false);
     }
 
     public void setState(UiState state) {
         switch ( state ) {
             case DISCOVERING:
-                this.setIcon(ImageHelper.getIcon(FILENAME_NOT_DISCOVERED));
+                this.setIcon(ImageHelper.getIcon(FILENAME_NOT_DISCOVERED, 20, 20));
                 break;
             case DISCOVERED:
-                this.setIcon(ImageHelper.getIcon(FILENAME_DISCOVERED));
+                this.setIcon(ImageHelper.getIcon(FILENAME_DISCOVERED, 20, 20));
                 break;
             case CONNECTING:
             case CONNECTED:
-                this.setIcon(ImageHelper.getIcon(FILENAME_CONNECTED));
+                this.setIcon(ImageHelper.getIcon(FILENAME_CONNECTED, 20, 20));
                 break;
         }
     }

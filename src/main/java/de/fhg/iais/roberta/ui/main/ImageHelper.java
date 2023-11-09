@@ -1,11 +1,11 @@
 package de.fhg.iais.roberta.ui.main;
 
-import java.awt.Image;
+import java.awt.*;
 import java.net.URL;
 import java.util.Locale;
 import java.util.Objects;
 
-import javax.swing.ImageIcon;
+import javax.swing.*;
 
 import de.fhg.iais.roberta.connection.IRobot;
 import de.fhg.iais.roberta.ui.UiState;
@@ -33,7 +33,7 @@ public final class ImageHelper {
      * Loads and returns the fitting GIF for the given state and connection.
      * DISCOVERING ignores the connection type.
      *
-     * @param state          the current ui state
+     * @param state the current ui state
      * @param connectionType the connection type of the current robot
      * @return the fitting GIF
      */
@@ -61,8 +61,10 @@ public final class ImageHelper {
      * @param name the filename in the images folder
      * @return the icon
      */
-    public static ImageIcon getIcon(String name) {
-        return new ImageIcon(getResource(name));
+    public static ImageIcon getIcon(String name, int width, int height) {
+        ImageIcon img = new ImageIcon(getResource(name));
+        Image newImage = img.getImage().getScaledInstance(width, height, java.awt.Image.SCALE_AREA_AVERAGING);
+        return new ImageIcon(newImage);
     }
 
     /**
@@ -71,6 +73,6 @@ public final class ImageHelper {
      * @return the title bar image
      */
     public static Image getTitleIconImage() {
-        return getIcon(TITLE_IMAGE_NAME).getImage();
+        return getIcon(TITLE_IMAGE_NAME, 128, 128).getImage();
     }
 }

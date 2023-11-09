@@ -1,25 +1,10 @@
 package de.fhg.iais.roberta.ui.main;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Frame;
-import java.awt.Image;
+import java.awt.*;
 import java.awt.event.ActionListener;
-import java.util.Objects;
 import java.util.ResourceBundle;
 
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextArea;
+import javax.swing.*;
 import javax.swing.border.Border;
 
 import de.fhg.iais.roberta.ui.OraButton;
@@ -64,7 +49,7 @@ class HelpDialog extends JDialog {
         this.lblGreet.setText(messages.getString("helpConnectionGreeting"));
 
         jPanel.add(this.butClose);
-        this.butClose.setIcon(ImageHelper.getIcon(FILENAME_TIMES));
+        this.butClose.setIcon(ImageHelper.getIcon(FILENAME_TIMES, 24, 24));
         this.butClose.setBorder(null);
         this.butClose.setBackground(Color.WHITE);
         this.butClose.setAlignmentY(Component.BOTTOM_ALIGNMENT);

@@ -1,12 +1,6 @@
 package de.fhg.iais.roberta.ui.main;
 
-import de.fhg.iais.roberta.connection.wireless.AbstractWirelessConnector;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.awt.Desktop;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
@@ -27,14 +21,17 @@ import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.swing.ImageIcon;
-import javax.swing.ListSelectionModel;
+import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.fhg.iais.roberta.connection.IConnector;
 import de.fhg.iais.roberta.connection.IConnector.State;
 import de.fhg.iais.roberta.connection.IRobot;
 import de.fhg.iais.roberta.connection.wired.IWiredRobot;
+import de.fhg.iais.roberta.connection.wireless.AbstractWirelessConnector;
 import de.fhg.iais.roberta.connection.wireless.IWirelessRobot;
 import de.fhg.iais.roberta.main.UpdateHelper;
 import de.fhg.iais.roberta.main.UpdateInfo;
@@ -42,14 +39,6 @@ import de.fhg.iais.roberta.main.UpdateInfo.Status;
 import de.fhg.iais.roberta.ui.IController;
 import de.fhg.iais.roberta.ui.OraPopup;
 import de.fhg.iais.roberta.ui.deviceIdEditor.DeviceIdEditorController;
-import de.fhg.iais.roberta.ui.serialMonitor.SerialMonitorController;
-import de.fhg.iais.roberta.util.CustomAddressHelper;
-import de.fhg.iais.roberta.util.IOraListenable;
-import de.fhg.iais.roberta.util.IOraListener;
-import de.fhg.iais.roberta.util.IOraUiListener;
-import de.fhg.iais.roberta.util.Pair;
-import de.fhg.iais.roberta.util.PropertyHelper;
-
 import static de.fhg.iais.roberta.ui.main.HelpDialog.CMD_CLOSE_HELP;
 import static de.fhg.iais.roberta.ui.main.HelpDialog.CMD_SELECT_EV3;
 import static de.fhg.iais.roberta.ui.main.HelpDialog.CMD_SELECT_NAO;
@@ -65,7 +54,13 @@ import static de.fhg.iais.roberta.ui.main.MainView.CMD_HELP;
 import static de.fhg.iais.roberta.ui.main.MainView.CMD_ID_EDITOR;
 import static de.fhg.iais.roberta.ui.main.MainView.CMD_SCAN;
 import static de.fhg.iais.roberta.ui.main.MainView.CMD_SERIAL;
-import static java.awt.Image.SCALE_AREA_AVERAGING;
+import de.fhg.iais.roberta.ui.serialMonitor.SerialMonitorController;
+import de.fhg.iais.roberta.util.CustomAddressHelper;
+import de.fhg.iais.roberta.util.IOraListenable;
+import de.fhg.iais.roberta.util.IOraListener;
+import de.fhg.iais.roberta.util.IOraUiListener;
+import de.fhg.iais.roberta.util.Pair;
+import de.fhg.iais.roberta.util.PropertyHelper;
 
 public class MainController implements IController, IOraListenable<IRobot> {
     private static final Logger LOG = LoggerFactory.getLogger(MainController.class);
@@ -403,7 +398,7 @@ public class MainController implements IController, IOraListenable<IRobot> {
                 "about",
                 "aboutInfo",
                 MainController.this.rb,
-                new ImageIcon(ImageHelper.getIcon("iais_logo.gif").getImage().getScaledInstance(100, 27, SCALE_AREA_AVERAGING)),
+                ImageHelper.getIcon("iais_logo.gif", 100, 27),
                 new String[] {"ok"},
                 PropertyHelper.getInstance().getProperty("version"));
         }
@@ -459,7 +454,7 @@ public class MainController implements IController, IOraListenable<IRobot> {
                         "attention",
                         "confirmCloseInfo",
                         MainController.this.rb,
-                        ImageHelper.getIcon(FILENAME_ROBERTA),
+                        ImageHelper.getIcon(FILENAME_ROBERTA, 100, 96),
                         buttons);
                 if ( n == 0 ) {
                     if ( MainController.this.connector != null ) {

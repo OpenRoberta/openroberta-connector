@@ -1,8 +1,6 @@
 package de.fhg.iais.roberta.ui.deviceIdEditor;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -12,29 +10,18 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.ResourceBundle;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.DefaultCellEditor;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 
 import de.fhg.iais.roberta.connection.wired.WiredRobotType;
 import de.fhg.iais.roberta.ui.OraButtonColumn;
 import de.fhg.iais.roberta.ui.OraTable;
+import static de.fhg.iais.roberta.ui.deviceIdEditor.DeviceIdEditorController.getDevicesTableData;
 import de.fhg.iais.roberta.ui.main.ImageHelper;
 import de.fhg.iais.roberta.util.IOraUiListener;
 import de.fhg.iais.roberta.util.SerialDevice;
 import de.fhg.iais.roberta.util.WiredRobotIdFileHelper;
-
-import static de.fhg.iais.roberta.ui.deviceIdEditor.DeviceIdEditorController.getDevicesTableData;
 
 final class DeviceIdEditorView extends JDialog {
     private static final String FILENAME_PLUS = "plus.png";
@@ -123,7 +110,7 @@ final class DeviceIdEditorView extends JDialog {
         this.pnlDevicesTable.add(this.tblDevices, BorderLayout.CENTER);
         this.tblDevices.getColumnModel().getColumn(0).setMaxWidth(30);
         this.tblDevices.getColumnModel().getColumn(4).setMaxWidth(30);
-        new OraButtonColumn(this.tblDevices, listener, CMD_ADD_ENTRY + CMD_DELIMITER,4);
+        new OraButtonColumn(this.tblDevices, listener, CMD_ADD_ENTRY + CMD_DELIMITER, 4);
 
         this.add(Box.createRigidArea(new Dimension(0, 20)));
 
@@ -193,7 +180,7 @@ final class DeviceIdEditorView extends JDialog {
 
         Collection<WiredRobotType> wiredRobotTypes = new ArrayList<>(Arrays.asList(WiredRobotType.values()));
         for ( WiredRobotType type : wiredRobotTypes ) {
-            if (type.isSerial()) {
+            if ( type.isSerial() ) {
                 comboBox.addItem(type);
             }
         }
@@ -211,7 +198,7 @@ final class DeviceIdEditorView extends JDialog {
         entry.add(vendorId);
         entry.add(productId);
         entry.add(port);
-        entry.add(ImageHelper.getIcon(FILENAME_PLUS));
+        entry.add(ImageHelper.getIcon(FILENAME_PLUS, 24, 24));
         return entry;
     }
 
@@ -220,7 +207,7 @@ final class DeviceIdEditorView extends JDialog {
         entry.add(vendorId);
         entry.add(productId);
         entry.add((wiredRobotType == WiredRobotType.NONE) ? "" : wiredRobotType);
-        entry.add(ImageHelper.getIcon(FILENAME_MINUS));
+        entry.add(ImageHelper.getIcon(FILENAME_MINUS, 24, 24));
         return entry;
     }
 

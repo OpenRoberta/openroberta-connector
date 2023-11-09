@@ -149,7 +149,7 @@ public class MainView extends JFrame {
     private final JLabel lblAvailable = new JLabel();
 
     private final JScrollPane scrollPaneRobots = new JScrollPane();
-    private final JList<String> listRobots = new JList<>(new String[] { "" });
+    private final JList<String> listRobots = new JList<>(new String[] {""});
 
     // - Token Server -
     private static final String CARD_TOKEN_SERVER = "tokenServer";
@@ -385,7 +385,7 @@ public class MainView extends JFrame {
         this.txtFldToken.setEditable(false);
 
         this.pnlToken.add(this.butCopy);
-        this.butCopy.setIcon(ImageHelper.getIcon(FILENAME_CLIPBOARD));
+        this.butCopy.setIcon(ImageHelper.getIcon(FILENAME_CLIPBOARD, 24, 24));
         this.butCopy.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
         this.butCopy.setActionCommand(CMD_COPY);
 
@@ -478,7 +478,7 @@ public class MainView extends JFrame {
 
         this.pnlCustomInfo.add(this.butCustom);
         this.butCustom.setActionCommand("customaddress");
-        this.butCustom.setIcon(ImageHelper.getIcon(FILENAME_UNCHECKED));
+        this.butCustom.setIcon(ImageHelper.getIcon(FILENAME_UNCHECKED, 24, 24));
         this.butCustom.setText(this.messages.getString("checkCustomDesc"));
         this.butCustom.setBorderPainted(false);
         this.butCustom.setBackground(Color.WHITE);
@@ -536,6 +536,7 @@ public class MainView extends JFrame {
         this.butCustom.addActionListener(listener);
         this.butCopy.addActionListener(listener);
     }
+
     private void setWindowListener(WindowListener windowListener) {
         this.addWindowListener(windowListener);
     }
@@ -565,6 +566,7 @@ public class MainView extends JFrame {
         this.showTopRobots(Collections.emptyList());
         this.showCustomAddress();
     }
+
     void setWaitForConnect(String robotName, ConnectionType connectionType) {
         this.butRobot.setState(UiState.DISCOVERED);
         this.butConnect.setEnabled(true);
@@ -589,9 +591,9 @@ public class MainView extends JFrame {
         this.txtFldToken.setPreferredSize(null);
         // Add one pixel width to remove small scrolling
         this.txtFldPreToken.setPreferredSize(new Dimension((int) this.txtFldPreToken.getPreferredSize().getWidth() + 1,
-                                                           (int) this.txtFldPreToken.getPreferredSize().getHeight()));
+            (int) this.txtFldPreToken.getPreferredSize().getHeight()));
         this.txtFldToken.setPreferredSize(new Dimension((int) this.txtFldToken.getPreferredSize().getWidth() + 1,
-                                                        (int) this.txtFldToken.getPreferredSize().getHeight()));
+            (int) this.txtFldToken.getPreferredSize().getHeight()));
         this.butCopy.setVisible(showCopy);
 
         // strip default port from serverAddress
@@ -677,7 +679,7 @@ public class MainView extends JFrame {
         this.setSize(size);
         this.pnlCustomHeading.setVisible(true);
         this.pnlCustomAddress.setVisible(true);
-        this.butCustom.setIcon(ImageHelper.getIcon(FILENAME_CHECKED));
+        this.butCustom.setIcon(ImageHelper.getIcon(FILENAME_CHECKED, 24, 24));
         this.customMenuVisible = true;
     }
 
@@ -689,7 +691,7 @@ public class MainView extends JFrame {
             this.setSize(size);
             this.pnlCustomHeading.setVisible(false);
             this.pnlCustomAddress.setVisible(false);
-            this.butCustom.setIcon(ImageHelper.getIcon(FILENAME_UNCHECKED));
+            this.butCustom.setIcon(ImageHelper.getIcon(FILENAME_UNCHECKED, 24, 24));
             this.customMenuVisible = false;
         }
     }
