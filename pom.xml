@@ -287,7 +287,7 @@
             <plugin>
                 <groupId>com.akathist.maven.plugins.launch4j</groupId>
                 <artifactId>launch4j-maven-plugin</artifactId>
-                <version>1.7.25</version>
+                <version>2.4.1</version>
                 <executions>
                     <execution>
                         <id>l4j-clui</id>
@@ -311,12 +311,16 @@
                                 <addDependencies>true</addDependencies>
                             </classPath>
                             <jre>
+                                <path>%JAVA_HOME%</path>
                                 <minVersion>1.8.0</minVersion>
+                                <maxVersion>1.11.99</maxVersion>
                             </jre>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+
+
             <!--Copy jars to linux and osx installers-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -328,8 +332,8 @@
                         <phase>install</phase>
                         <configuration>
                             <target>
-                                <copy file="${basedir}/target/${project.artifactId}-${project.version}.jar" tofile="${basedir}/installers/linux/${project.artifactId}.jar" />
-                                <copy file="${basedir}/target/${project.artifactId}-${project.version}.jar" tofile="${basedir}/installers/osx/${project.artifactId}.jar" />
+                                <copy file="${basedir}/target/${project.artifactId}-${project.version}.jar" tofile="${basedir}/installers/linux/${project.artifactId}.jar"/>
+                                <copy file="${basedir}/target/${project.artifactId}-${project.version}.jar" tofile="${basedir}/installers/osx/${project.artifactId}.jar"/>
                             </target>
                         </configuration>
                         <goals>
@@ -341,7 +345,7 @@
                         <phase>install</phase>
                         <configuration>
                             <target>
-                                <chmod file="${basedir}/installers/linux/install-connector" perm="755" />
+                                <chmod file="${basedir}/installers/linux/install-connector" perm="755"/>
                             </target>
                         </configuration>
                         <goals>
